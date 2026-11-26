@@ -50,7 +50,6 @@
             window.deleteDoc = deleteDoc;
             window.onSnapshot = onSnapshot;
 
-            console.log("Firebase conectado correctamente.");
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (error) {
             console.error("Error al inicializar Firebase:", error);
@@ -73,7 +72,7 @@
                     <input type="password" id="pinInput" placeholder="PIN de acceso" maxlength="6" 
                         class="w-full text-center text-2xl tracking-widest px-4 py-3 border-2 border-retroTurquoise rounded-2xl focus:outline-none focus:ring-4 focus:ring-retroFuchsia/30">
                 </div>
-                <button type="submit" class="w-full bg-retroTurquoise hover:bg-retroTurquoise/80 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5">
+                <button type="submit" class="w-full bg-retroTurquoise hover:bg-retroTurquoise/80 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition">
                     Entrar al Panel
                 </button>
             </form>
@@ -105,16 +104,27 @@
             <button onclick="switchTab('whatsapp')" id="tab-whatsapp" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition">Pedidos WhatsApp (Manual)</button>
             <button onclick="switchTab('menu')" id="tab-menu" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition">Gestión de Menú</button>
             <button onclick="switchTab('inventory')" id="tab-inventory" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition">Inventario</button>
-            <button onclick="switchTab('accounting')" id="tab-accounting" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition">Contabilidad & Nómina</button>
+            <button onclick="switchTab('accounting')" id="tab-accounting" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition">Contabilidad & Métricas</button>
         </nav>
 
         <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
             
             <!-- 1. PEDIDOS EN VIVO -->
             <section id="section-orders" class="admin-section space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-black text-retroYellow">Pedidos Recibidos desde la Web</h2>
-                    <span class="bg-retroFuchsia text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">Sincronizado en Vivo</span>
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-800 p-4 rounded-2xl border border-gray-700">
+                    <h2 class="text-xl font-black text-retroYellow">Pedidos Recibidos (Web & Manuales)</h2>
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <select id="filterOrderStatus" onchange="renderOrders()" class="bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-2 text-xs font-bold">
+                            <option value="Todos">Filtrar por Estado: Todos</option>
+                            <option value="Pendiente">⏳ Pendiente</option>
+                            <option value="Transferencia Aceptada">🏦 Transferencia Aceptada</option>
+                            <option value="Pedido en Curso">🍳 Pedido en Curso</option>
+                            <option value="Pedido en Camino">🛵 Pedido en Camino</option>
+                            <option value="Entregado">✅ Entregado</option>
+                            <option value="Cancelado">❌ Cancelado</option>
+                        </select>
+                        <span class="bg-retroFuchsia text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse whitespace-nowrap">En Vivo</span>
+                    </div>
                 </div>
                 <div id="liveOrdersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <p class="text-gray-400">Cargando pedidos...</p>
@@ -128,16 +138,15 @@
                     <form onsubmit="saveManualOrder(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <input type="text" id="mClientName" placeholder="Nombre del Cliente" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                         <input type="text" id="mClientPhone" placeholder="Teléfono / WhatsApp" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
-                        <input type="text" id="mOrderDetails" placeholder="Detalle del pedido (ej: 2 Tres leches, 1 Latte)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
-                        <input type="number" id="mOrderTotal" placeholder="Monto total ($)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
+                        <input type="text" id="mOrderDetails" placeholder="Detalle (ej: 2 Tres leches, 1 Latte)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
+                        <input type="number" step="0.01" id="mOrderTotal" placeholder="Monto total ($)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                         <select id="mOrderType" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                             <option value="WhatsApp">Pedido WhatsApp</option>
                             <option value="Local">Mostrador / Local</option>
                         </select>
-                        <button type="submit" class="bg-retroTurquoise text-white font-bold py-2 px-6 rounded-xl shadow hover:opacity-90">Guardar Pedido</button>
+                        <button type="submit" class="bg-retroTurquoise text-white font-bold py-2 px-6 rounded-xl shadow hover:opacity-90">Registrar Pedido Manual</button>
                     </form>
                 </div>
-                <div id="manualOrdersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
             <!-- 3. GESTIÓN DE MENÚ Y FOTOS -->
@@ -181,9 +190,9 @@
                 <div class="bg-gray-800 p-6 rounded-2xl border-2 border-retroFuchsia">
                     <h2 class="text-xl font-bold text-retroFuchsia mb-4">Control de Inventario e Insumos</h2>
                     <form onsubmit="saveInventoryItem(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <input type="text" id="invItemName" placeholder="Nombre de insumo (ej: Café en grano)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
+                        <input type="text" id="invItemName" placeholder="Nombre de insumo" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                         <input type="number" id="invItemStock" placeholder="Cantidad actual" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
-                        <input type="text" id="invItemUnit" placeholder="Unidad (kg, litros, u.)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
+                        <input type="text" id="invItemUnit" placeholder="Unidad (kg, l, u)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                         <button type="submit" class="bg-retroFuchsia text-white font-bold py-2 px-6 rounded-xl shadow hover:opacity-90">Agregar Insumo</button>
                     </form>
                     <div class="overflow-x-auto">
@@ -202,11 +211,26 @@
                 </div>
             </section>
 
-            <!-- 5. CONTABILIDAD Y NÓMINA -->
+            <!-- 5. CONTABILIDAD Y MÉTRICAS -->
             <section id="section-accounting" class="admin-section hidden space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Filtros de Contabilidad -->
+                <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <label class="text-xs font-bold text-retroYellow">Filtrar por Día:</label>
+                        <input type="date" id="accFilterDate" onchange="renderAccounting()" class="bg-gray-900 border border-gray-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold">
+                        <button onclick="document.getElementById('accFilterDate').value=''; renderAccounting();" class="text-xs text-gray-400 hover:underline">Ver Todos</button>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="text-xs font-bold text-retroTurquoise">Filtrar por Mes:</label>
+                        <input type="month" id="accFilterMonth" onchange="renderAccounting()" class="bg-gray-900 border border-gray-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold">
+                        <button onclick="document.getElementById('accFilterMonth').value=''; renderAccounting();" class="text-xs text-gray-400 hover:underline">Ver Todos</button>
+                    </div>
+                </div>
+
+                <!-- Tarjetas de Totales -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-gray-800 p-6 rounded-2xl border-2 border-retroTurquoise">
-                        <h3 class="text-sm font-bold text-gray-400 uppercase">Ventas Totales</h3>
+                        <h3 class="text-sm font-bold text-gray-400 uppercase">Ventas Totales (Aceptadas)</h3>
                         <p id="accTotalSales" class="text-3xl font-black text-retroTurquoise mt-2">$0.00</p>
                     </div>
                     <div class="bg-gray-800 p-6 rounded-2xl border-2 border-retroFuchsia">
@@ -219,22 +243,31 @@
                     </div>
                 </div>
 
+                <!-- Métricas de Rendimiento Mensual -->
+                <div class="bg-gray-800 p-6 rounded-2xl border-2 border-retroPurple">
+                    <h3 class="text-lg font-bold text-retroYellow mb-3"><i class="fa-solid fa-chart-line"></i> Métricas & Rendimiento Mensual</h3>
+                    <div id="monthlyMetricsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <p class="text-gray-400 text-xs">Calculando análisis de meses...</p>
+                    </div>
+                </div>
+
+                <!-- Registro y Egresos -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
                         <h3 class="text-lg font-bold text-retroYellow mb-4">Registrar Gasto o Pago de Nómina</h3>
                         <form onsubmit="saveExpense(event)" class="space-y-4">
-                            <input type="text" id="expDesc" placeholder="Descripción (ej: Nómina Barista / Alquiler)" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
-                            <input type="number" step="0.01" id="expAmount" placeholder="Monto ($)" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
-                            <select id="expType" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
+                            <input type="text" id="expDesc" placeholder="Descripción (ej: Alquiler / Nómina)" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm">
+                            <input type="number" step="0.01" id="expAmount" placeholder="Monto ($)" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm">
+                            <select id="expType" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm">
                                 <option value="Gasto General">Gasto General / Insumos</option>
                                 <option value="Nómina">Nómina / Salario</option>
                             </select>
-                            <button type="submit" class="w-full bg-retroYellow text-retroPurple font-bold py-2 rounded-xl">Registrar Egresos</button>
+                            <button type="submit" class="w-full bg-retroYellow text-retroPurple font-bold py-2.5 rounded-xl text-sm">Registrar Egreso</button>
                         </form>
                     </div>
 
                     <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
-                        <h3 class="text-lg font-bold text-retroTurquoise mb-4">Historial de Egresos y Nómina</h3>
+                        <h3 class="text-lg font-bold text-retroTurquoise mb-4">Historial de Egresos</h3>
                         <div id="expensesList" class="space-y-3 max-h-64 overflow-y-auto"></div>
                     </div>
                 </div>
@@ -245,6 +278,8 @@
 
     <script>
         let globalProducts = [];
+        let globalOrders = [];
+        let globalExpenses = [];
         let currentAdminCat = 'Todos';
 
         function verifyPin(e) {
@@ -293,61 +328,20 @@
             const db = window.db;
             if(!db) return;
 
+            // Escuchar Órdenes
             window.onSnapshot(window.collection(db, "199x_orders"), (snapshot) => {
-                const container = document.getElementById('liveOrdersContainer');
-                if(!container) return;
-                container.innerHTML = '';
-                if(snapshot.empty) {
-                    container.innerHTML = '<p class="text-gray-400">No hay pedidos recibidos aún.</p>';
-                    return;
-                }
-                snapshot.forEach(docSnap => {
-                    const order = docSnap.data();
-                    const id = docSnap.id;
-                    const itemsList = order.items ? order.items.map(i => `<li class="text-sm">• ${i.name} x${i.qty} ($${i.price})</li>`).join('') : '';
-                    const phoneClean = (order.customerPhone || order.phone || '').replace(/[^0-9]/g, '');
-                    const currentStatus = order.status || 'Pendiente';
-                    
-                    const div = document.createElement('div');
-                    div.className = `bg-gray-800 p-5 rounded-2xl border-2 ${currentStatus === 'Entregado' ? 'border-green-500' : 'border-retroYellow'}`;
-                    div.innerHTML = `
-                        <div class="flex justify-between items-start mb-3">
-                            <div>
-                                <span class="text-xs bg-retroPurple text-retroYellow px-2 py-1 rounded font-bold">${order.channel || order.type || 'Web'}</span>
-                                <h3 class="text-lg font-black text-white mt-1">${order.customerName}</h3>
-                                <p class="text-xs text-gray-400">${order.customerPhone || order.phone || ''} • ${order.date || ''} ${order.time || ''}</p>
-                            </div>
-                            <span class="text-retroTurquoise font-black text-lg">$${order.total}</span>
-                        </div>
-                        <ul class="mb-4 bg-gray-900 p-3 rounded-xl">${itemsList}</ul>
-                        
-                        <div class="mb-3 space-y-2">
-                            <label class="block text-xs font-bold text-retroYellow">Estado del Pedido:</label>
-                            <select onchange="updateOrderStatusWithWhatsApp('${id}', '${encodeURIComponent(order.customerName)}', '${phoneClean}', this.value)" class="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-3 py-2 text-xs font-bold">
-                                <option value="Pendiente" ${currentStatus === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente / Verificando Transferencia</option>
-                                <option value="Transferencia Aceptada" ${currentStatus === 'Transferencia Aceptada' ? 'selected' : ''}>🏦 Transferencia Aceptada</option>
-                                <option value="Pedido en Curso" ${currentStatus === 'Pedido en Curso' ? 'selected' : ''}>🍳 Pedido en Curso (Preparando)</option>
-                                <option value="Pedido en Camino" ${currentStatus === 'Pedido en Camino' ? 'selected' : ''}>🛵 Pedido en Camino / Listo</option>
-                                <option value="Entregado" ${currentStatus === 'Entregado' ? 'selected' : ''}>✅ Pedido Entregado</option>
-                                <option value="Cancelado" ${currentStatus === 'Cancelado' ? 'selected' : ''}>❌ Pedido Cancelado</option>
-                            </select>
-                        </div>
-
-                        <div id="wa-btn-container-${id}" class="mt-2">
-                            <a href="https://wa.me/1${phoneClean}?text=Hola%20${encodeURIComponent(order.customerName)},%20tu%20pedido%20en%20199X%20Coffee%20se%20encuentra%20actualmente:%20*${encodeURIComponent(currentStatus)}*" target="_blank" class="w-full inline-block bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
-                                <i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp (${currentStatus})
-                            </a>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
+                globalOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderOrders();
+                renderAccounting();
             });
 
+            // Escuchar Productos
             window.onSnapshot(window.collection(db, "199x_products"), (snapshot) => {
                 globalProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderAdminMenu();
             });
 
+            // Escuchar Inventario
             window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
                 const tbody = document.getElementById('inventoryTableBody');
                 if(!tbody) return;
@@ -369,45 +363,202 @@
                 });
             });
 
+            // Escuchar Gastos
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
-                const list = document.getElementById('expensesList');
-                if(!list) return;
+                globalExpenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderAccounting();
+            });
+        }
+
+        // Renderizar Órdenes con Filtros y Botón Eliminar
+        window.renderOrders = function() {
+            const container = document.getElementById('liveOrdersContainer');
+            const statusFilter = document.getElementById('filterOrderStatus')?.value || 'Todos';
+            if(!container) return;
+
+            container.innerHTML = '';
+            const filtered = globalOrders.filter(order => statusFilter === 'Todos' || (order.status || 'Pendiente') === statusFilter);
+
+            if(filtered.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 col-span-full">No hay pedidos con este filtro.</p>';
+                return;
+            }
+
+            filtered.forEach(order => {
+                const id = order.id;
+                const itemsList = order.items ? order.items.map(i => `<li class="text-sm">• ${i.name} x${i.qty} ($${i.price})</li>`).join('') : '';
+                const phoneClean = (order.customerPhone || order.phone || '').replace(/[^0-9]/g, '');
+                const currentStatus = order.status || 'Pendiente';
+                
+                const div = document.createElement('div');
+                div.className = `bg-gray-800 p-5 rounded-2xl border-2 ${currentStatus === 'Transferencia Aceptada' ? 'border-green-500' : 'border-retroYellow'}`;
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs bg-retroPurple text-retroYellow px-2 py-1 rounded font-bold">${order.channel || 'Web'}</span>
+                            <h3 class="text-lg font-black text-white mt-1">${order.customerName}</h3>
+                            <p class="text-xs text-gray-400">${order.customerPhone || ''} • ${order.date || ''} ${order.time || ''}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-retroTurquoise font-black text-lg">$${order.total}</span>
+                            <button onclick="deleteOrder('${id}')" class="block text-red-400 hover:text-red-300 text-[10px] font-bold mt-1">Eliminar</button>
+                        </div>
+                    </div>
+                    <ul class="mb-4 bg-gray-900 p-3 rounded-xl">${itemsList}</ul>
+                    
+                    <div class="mb-3 space-y-2">
+                        <label class="block text-xs font-bold text-retroYellow">Estado del Pedido:</label>
+                        <select onchange="updateOrderStatus('${id}', '${encodeURIComponent(order.customerName)}', '${phoneClean}', this.value)" class="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-3 py-2 text-xs font-bold">
+                            <option value="Pendiente" ${currentStatus === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente / Verificando</option>
+                            <option value="Transferencia Aceptada" ${currentStatus === 'Transferencia Aceptada' ? 'selected' : ''}>🏦 Transferencia Aceptada</option>
+                            <option value="Pedido en Curso" ${currentStatus === 'Pedido en Curso' ? 'selected' : ''}>🍳 Pedido en Curso</option>
+                            <option value="Pedido en Camino" ${currentStatus === 'Pedido en Camino' ? 'selected' : ''}>🛵 Pedido en Camino</option>
+                            <option value="Entregado" ${currentStatus === 'Entregado' ? 'selected' : ''}>✅ Entregado</option>
+                            <option value="Cancelado" ${currentStatus === 'Cancelado' ? 'selected' : ''}>❌ Cancelado</option>
+                        </select>
+                    </div>
+
+                    <div id="wa-btn-container-${id}" class="mt-2">
+                        <a href="https://wa.me/1${phoneClean}?text=Hola%20${encodeURIComponent(order.customerName)},%20tu%20pedido%20en%20199X%20Coffee%20se%20encuentra%20actualmente:%20*${encodeURIComponent(currentStatus)}*" target="_blank" class="w-full inline-block bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
+                            <i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp (${currentStatus})
+                        </a>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        };
+
+        async function updateOrderStatus(id, custName, phone, newStatus) {
+            await window.updateDoc(window.doc(window.db, "199x_orders", id), { status: newStatus });
+            const container = document.getElementById(`wa-btn-container-${id}`);
+            if(container) {
+                container.innerHTML = `
+                    <a href="https://wa.me/1${phone}?text=Hola%20${custName},%20tu%20pedido%20en%20199X%20Coffee%20se%20encuentra%20actualmente:%20*${encodeURIComponent(newStatus)}*" target="_blank" class="w-full inline-block bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
+                        <i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp (${newStatus})
+                    </a>
+                `;
+            }
+        }
+
+        async function deleteOrder(id) {
+            if(confirm('¿Seguro que deseas eliminar este pedido?')) {
+                await window.deleteDoc(window.doc(window.db, "199x_orders", id));
+            }
+        }
+
+        // Renderizar Contabilidad y Métricas con Filtros
+        window.renderAccounting = function() {
+            const filterDate = document.getElementById('accFilterDate')?.value;
+            const filterMonth = document.getElementById('accFilterMonth')?.value;
+
+            // Filtrar Órdenes (Solo se suman a Ventas Totales si el estado es 'Transferencia Aceptada')
+            const filteredOrders = globalOrders.filter(o => {
+                if((o.status || 'Pendiente') !== 'Transferencia Aceptada') return false;
+                if(!o.date) return true;
+                // Formato esperado de fecha: DD/MM/YYYY o YYYY-MM-DD
+                let orderDate = o.date;
+                if(orderDate.includes('/')) {
+                    const parts = orderDate.split('/');
+                    if(parts.length === 3) orderDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                }
+                if(filterDate && orderDate !== filterDate) return false;
+                if(filterMonth && !orderDate.startsWith(filterMonth)) return false;
+                return true;
+            });
+
+            // Filtrar Gastos
+            const filteredExpenses = globalExpenses.filter(e => {
+                if(!e.date) return true;
+                let expDate = e.date;
+                if(expDate.includes('/')) {
+                    const parts = expDate.split('/');
+                    if(parts.length === 3) expDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                }
+                if(filterDate && expDate !== filterDate) return false;
+                if(filterMonth && !expDate.startsWith(filterMonth)) return false;
+                return true;
+            });
+
+            let totalSales = filteredOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+            let totalExpenses = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+            let netBalance = totalSales - totalExpenses;
+
+            document.getElementById('accTotalSales').innerText = `$${totalSales.toFixed(2)}`;
+            document.getElementById('accTotalExpenses').innerText = `$${totalExpenses.toFixed(2)}`;
+            const netEl = document.getElementById('accNetBalance');
+            netEl.innerText = `$${netBalance.toFixed(2)}`;
+            netEl.className = `text-3xl font-black mt-2 ${netBalance >= 0 ? 'text-retroYellow' : 'text-red-500'}`;
+
+            // Renderizar Historial de Egresos
+            const list = document.getElementById('expensesList');
+            if(list) {
                 list.innerHTML = '';
-                let totalExpenses = 0;
-                snapshot.forEach(docSnap => {
-                    const exp = docSnap.data();
-                    totalExpenses += Number(exp.amount);
+                filteredExpenses.forEach(exp => {
                     const div = document.createElement('div');
                     div.className = 'flex justify-between items-center bg-gray-900 p-3 rounded-xl border border-gray-800';
                     div.innerHTML = `
                         <div>
                             <p class="text-sm font-bold text-white">${exp.description}</p>
-                            <span class="text-xs text-retroFuchsia">${exp.type}</span>
+                            <span class="text-xs text-retroFuchsia">${exp.type} • ${exp.date || ''}</span>
                         </div>
                         <span class="text-retroFuchsia font-black">-$${exp.amount}</span>
                     `;
                     list.appendChild(div);
                 });
+            }
 
-                window.getDocs(window.collection(db, "199x_orders")).then(orderSnap => {
-                    let totalSales = 0;
-                    orderSnap.forEach(o => {
-                        totalSales += Number(o.data().total || 0);
-                    });
-                    const salesEl = document.getElementById('accTotalSales');
-                    const expEl = document.getElementById('accTotalExpenses');
-                    const netEl = document.getElementById('accNetBalance');
-                    if(salesEl) salesEl.innerText = `$${totalSales.toFixed(2)}`;
-                    if(expEl) expEl.innerText = `$${totalExpenses.toFixed(2)}`;
-                    if(netEl) {
-                        const net = totalSales - totalExpenses;
-                        netEl.innerText = `$${net.toFixed(2)}`;
-                        netEl.className = `text-3xl font-black mt-2 ${net >= 0 ? 'text-retroYellow' : 'text-red-500'}`;
-                    }
-                });
+            // Calcular Métricas Mensuales (Análisis global de meses)
+            calculateMonthlyMetrics();
+        };
+
+        function calculateMonthlyMetrics() {
+            const monthlyMap = {};
+            globalOrders.forEach(o => {
+                if((o.status || 'Pendiente') !== 'Transferencia Aceptada') return;
+                if(!o.date) return;
+                let d = o.date;
+                if(d.includes('/')) {
+                    const p = d.split('/');
+                    if(p.length === 3) d = `${p[2]}-${p[1].padStart(2,'0')}`;
+                } else if(d.length >= 7) {
+                    d = d.substring(0, 7);
+                }
+                if(!monthlyMap[d]) monthlyMap[d] = 0;
+                monthlyMap[d] += Number(o.total || 0);
+            });
+
+            const container = document.getElementById('monthlyMetricsContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const months = Object.keys(monthlyMap).sort();
+            if(months.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-xs">Aún no hay suficientes datos de ventas aceptadas.</p>';
+                return;
+            }
+
+            let bestMonth = months[0], worstMonth = months[0];
+            months.forEach(m => {
+                if(monthlyMap[m] > monthlyMap[bestMonth]) bestMonth = m;
+                if(monthlyMap[m] < monthlyMap[worstMonth]) worstMonth = m;
+            });
+
+            months.forEach(m => {
+                const isBest = (m === bestMonth && months.length > 1);
+                const isWorst = (m === worstMonth && months.length > 1);
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-2xl border ${isBest ? 'bg-emerald-950/40 border-emerald-500' : (isWorst ? 'bg-red-950/40 border-red-500' : 'bg-gray-900 border-gray-750')}`;
+                div.innerHTML = `
+                    <p class="text-xs font-bold text-gray-400 uppercase">Mes: ${m}</p>
+                    <p class="text-2xl font-black text-white mt-1">$${monthlyMap[m].toFixed(2)}</p>
+                    ${isBest ? '<span class="inline-block mt-2 text-[10px] bg-emerald-500 text-white px-2 py-0.5 rounded font-bold">⭐ Mes con mejor rendimiento</span>' : ''}
+                    ${isWorst && !isBest ? '<span class="inline-block mt-2 text-[10px] bg-red-500 text-white px-2 py-0.5 rounded font-bold">⚠️ Mes con menor venta</span>' : ''}
+                `;
+                container.appendChild(div);
             });
         }
 
+        // Menú de Productos y Filtros
         window.filterAdminCat = function(cat) {
             currentAdminCat = cat;
             document.querySelectorAll('.admin-cat-btn').forEach(b => {
@@ -443,18 +594,6 @@
                 </div>
             `).join('');
         };
-
-        async function updateOrderStatusWithWhatsApp(id, custName, phone, newStatus) {
-            await window.updateDoc(window.doc(window.db, "199x_orders", id), { status: newStatus });
-            const container = document.getElementById(`wa-btn-container-${id}`);
-            if(container) {
-                container.innerHTML = `
-                    <a href="https://wa.me/1${phone}?text=Hola%20${custName},%20tu%20pedido%20en%20199X%20Coffee%20se%20encuentra%20actualmente:%20*${encodeURIComponent(newStatus)}*" target="_blank" class="w-full inline-block bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
-                        <i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp (${newStatus})
-                    </a>
-                `;
-            }
-        }
 
         function compressImage(file, callback) {
             const reader = new FileReader();
@@ -543,6 +682,7 @@
             }
         }
 
+        // Registrar Pedidos Manuales
         async function saveManualOrder(e) {
             e.preventDefault();
             const customerName = document.getElementById('mClientName').value;
@@ -551,22 +691,26 @@
             const total = parseFloat(document.getElementById('mOrderTotal').value);
             const type = document.getElementById('mOrderType').value;
 
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
             await window.addDoc(window.collection(window.db, "199x_orders"), {
                 customerName,
                 customerPhone: phone,
                 items: [{ name: details, qty: 1, price: total }],
                 total,
                 channel: type,
-                status: 'Pendiente',
-                date: new Date().toLocaleDateString(),
-                time: new Date().toLocaleTimeString()
+                status: 'Transferencia Aceptada', // Por defecto los manuales entran aceptados a caja
+                date: dateStr,
+                time: now.toLocaleTimeString()
             });
 
             document.getElementById('mClientName').value = '';
             document.getElementById('mClientPhone').value = '';
             document.getElementById('mOrderDetails').value = '';
             document.getElementById('mOrderTotal').value = '';
-            alert('¡Pedido manual registrado con éxito!');
+            alert('¡Pedido manual registrado y sumado a ventas con éxito!');
+            switchTab('orders');
         }
 
         async function saveInventoryItem(e) {
@@ -593,7 +737,10 @@
             const amount = parseFloat(document.getElementById('expAmount').value);
             const type = document.getElementById('expType').value;
 
-            await window.addDoc(window.collection(window.db, "199x_accounting"), { description, amount, type, date: new Date().toLocaleDateString() });
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+            await window.addDoc(window.collection(window.db, "199x_accounting"), { description, amount, type, date: dateStr });
             document.getElementById('expDesc').value = '';
             document.getElementById('expAmount').value = '';
             alert('¡Egreso registrado con éxito!');
