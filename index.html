@@ -27,6 +27,30 @@
   <!-- TOAST CONTAINER -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4"></div>
 
+  <!-- MODAL ÉXITO / WHATSAPP TRANSFERENCIA -->
+  <div id="whatsapp-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full border-4 border-[#2E1065] shadow-[8px_8px_0px_#06B6D4] text-center space-y-4">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl border-2 border-[#2E1065]">
+        🏦
+      </div>
+      <h3 class="font-retro font-extrabold text-2xl text-[#6B21A8]">¡Pedido Registrado (Pendiente)!</h3>
+      <p class="text-xs text-gray-600 leading-relaxed">
+        Tu pedido ha quedado en estado <strong>Pendiente</strong>. Para confirmarlo de inmediato, por favor envía tu comprobante de transferencia por WhatsApp al número administrativo:
+      </p>
+      <div class="bg-purple-50 p-3 rounded-2xl border-2 border-dashed border-[#6B21A8]">
+        <p class="font-extrabold text-lg text-[#6B21A8]">849-404-0514</p>
+      </div>
+      <div class="space-y-2 pt-2">
+        <a id="whatsapp-send-btn" href="#" target="_blank" class="w-full inline-block btn-90s bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3 rounded-2xl text-sm">
+          💬 Enviar Comprobante por WhatsApp
+        </a>
+        <button onclick="closeWhatsappModal()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2.5 rounded-2xl text-xs">
+          Cerrar y Continuar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- HEADER -->
   <header class="sticky top-0 z-40 bg-[#6B21A8] text-white border-b-4 border-[#2E1065] shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -148,11 +172,9 @@
           </div>
           <p id="schedule-helper-text" class="text-[11px] font-semibold text-purple-800 bg-yellow-100 p-2 rounded-lg border border-yellow-300">Selecciona fecha y hora.</p>
           <div>
-            <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Pago</label>
-            <select id="cust-payment" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs">
-              <option value="Efectivo al recoger">💵 Efectivo al recoger</option>
-              <option value="Transferencia">🏦 Transferencia</option>
-              <option value="Tarjeta en Local">💳 Tarjeta</option>
+            <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Método de Pago</label>
+            <select id="cust-payment" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs bg-purple-50 font-bold">
+              <option value="Transferencia Bancaria">🏦 Transferencia Bancaria (Pendiente de verificación)</option>
             </select>
           </div>
           <div>
@@ -349,27 +371,49 @@
       e.preventDefault();
       if (state.cart.length === 0) { showToast('⚠️ Carrito vacío'); return; }
       const total = state.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+      const customerName = document.getElementById('cust-name').value.trim();
+      const customerPhone = document.getElementById('cust-phone').value.trim();
+      const date = document.getElementById('cust-date').value;
+      const time = document.getElementById('cust-time').value;
+      
       const order = {
         channel: 'Web',
-        customerName: document.getElementById('cust-name').value.trim(),
-        customerPhone: document.getElementById('cust-phone').value.trim(),
-        date: document.getElementById('cust-date').value,
-        time: document.getElementById('cust-time').value,
-        paymentMethod: document.getElementById('cust-payment').value,
+        customerName,
+        customerPhone,
+        date,
+        time,
+        paymentMethod: 'Transferencia Bancaria',
         notes: document.getElementById('cust-notes').value.trim(),
         status: 'Pendiente',
         items: state.cart.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
         total: Number(total.toFixed(2)),
         createdAt: Date.now()
       };
+      
       try {
         await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), order);
+        
+        // Preparar enlace de WhatsApp con el detalle del pedido
+        let itemsText = state.cart.map(i => `- ${i.qty}x ${i.name} ($${(i.price * i.qty).toFixed(2)})`).join('%0A');
+        let waMessage = `Hola! Acabo de hacer el pedido #web en 199X Coffee.%0A%0A*Cliente:* ${encodeURIComponent(customerName)}%0A*Fecha/Hora:* ${date} a las ${time}%0A*Total:* $${total.toFixed(2)}%0A%0A*Productos:*%0A${itemsText}%0A%0AAdjunto mi comprobante de transferencia para verificación.`;
+        document.getElementById('whatsapp-send-btn').href = `https://wa.me/18494040514?text=${waMessage}`;
+
         state.cart = [];
         renderCart();
         document.getElementById('customer-checkout-form').reset();
         setupDefaultDates();
-        showToast('🎉 ¡Pedido enviado con éxito!');
+        
+        // Mostrar modal de WhatsApp
+        document.getElementById('whatsapp-modal').classList.remove('hidden');
+        document.getElementById('whatsapp-modal').classList.add('flex');
+
       } catch (err) { alert('Error al enviar pedido'); }
+    };
+
+    window.closeWhatsappModal = function() {
+      const m = document.getElementById('whatsapp-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
     };
 
     window.toggleCartModal = function(show) {
