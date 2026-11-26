@@ -1,401 +1,398 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>199X Coffee | Cafetería Retro</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        retroYellow: '#FACC15',
-                        retroPurple: '#7C3AED',
-                        retroFuchsia: '#DB2777',
-                        retroTeal: '#0D9488',
-                        retroDark: '#1E1B4B'
-                    }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Fredoka', sans-serif; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>199X Coffee | Tienda Oficial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #FAF7FF; color: #1E1035; }
+    h1, h2, h3, .font-retro { font-family: 'Space Grotesk', sans-serif; }
+    .bg-memphis {
+      background-color: #FAF7FF;
+      background-image: radial-gradient(#EC489922 2px, transparent 2px), radial-gradient(#06B6D422 2px, #FAF7FF 2px);
+      background-size: 36px 36px;
+      background-position: 0 0, 18px 18px;
+    }
+    .card-90s { border: 2.5px solid #2E1065; box-shadow: 5px 5px 0px #2E1065; }
+    .btn-90s { border: 2.5px solid #2E1065; box-shadow: 3px 3px 0px #2E1065; transition: all 0.1s; }
+    .btn-90s:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #2E1065; }
+  </style>
 </head>
-<body class="bg-retroDark text-white min-h-screen flex flex-col">
+<body class="bg-memphis min-h-screen flex flex-col">
 
-    <!-- HEADER / NAVEGACIÓN -->
-    <header class="bg-retroPurple/90 backdrop-blur border-b-4 border-retroYellow sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-lg">
-        <div class="flex items-center space-x-3">
-            <span class="text-3xl">☕</span>
-            <div>
-                <h1 class="text-2xl font-black text-retroYellow tracking-wider">199X COFFEE</h1>
-                <p id="store-status" class="text-xs font-semibold text-retroTeal uppercase tracking-widest">Verificando horario...</p>
-            </div>
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4"></div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-40 bg-[#6B21A8] text-white border-b-4 border-[#2E1065] shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-[#FFD600] text-[#2E1065] border-2 border-[#2E1065] flex items-center justify-center font-retro font-extrabold text-xl shadow-[3px_3px_0px_#EC4899] rotate-[-3deg]">
+          9X
         </div>
-        <div class="flex items-center space-x-4">
-            <!-- Botón de Abrir Carrito -->
-            <button onclick="toggleCart()" class="bg-retroFuchsia hover:bg-pink-600 text-white px-4 py-2 rounded-xl font-bold border-2 border-retroYellow shadow flex items-center space-x-2 transition transform hover:scale-105">
-                <span>🛒 Pedido</span>
-                <span id="cart-badge" class="bg-retroYellow text-retroDark text-xs px-2 py-0.5 rounded-full font-black">0</span>
-            </button>
-            <!-- Enlace externo discreto al panel de control para ti -->
-            <a href="admin.html" class="text-xs text-retroYellow hover:underline opacity-70">Admin ⚙️</a>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-retro font-extrabold text-xl sm:text-2xl text-[#FFD600]">199X Coffee</span>
+            <span class="hidden sm:inline-block text-[11px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#06B6D4] text-[#1E1035] border border-[#2E1065]">Est. 1999</span>
+          </div>
+          <p class="text-xs text-purple-200">Postres • Desayunos • Café de Especialidad</p>
         </div>
-    </header>
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
-        <!-- Banner de Bienvenida -->
-        <div class="bg-gradient-to-r from-retroPurple via-retroFuchsia to-retroTeal rounded-3xl p-8 mb-10 border-4 border-retroYellow shadow-2xl text-center relative overflow-hidden">
-            <div class="relative z-10">
-                <span class="bg-retroYellow text-retroDark font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest border border-retroDark">Estilo Retro 90s</span>
-                <h2 class="text-4xl md:text-5xl font-black text-white mt-3 mb-2 drop-shadow-md">¡Siente el sabor de los 90s!</h2>
-                <p class="text-retroYellow font-medium max-w-xl mx-auto text-sm md:text-base">Disfruta los mejores postres, desayunos artesanales y café de especialidad preparados al instante.</p>
-            </div>
-        </div>
-
-        <!-- Filtros de Categorías -->
-        <div class="flex flex-wrap justify-center gap-3 mb-8">
-            <button onclick="filterCategory('all')" class="cat-btn bg-retroYellow text-retroDark px-5 py-2 rounded-xl font-bold border-2 border-retroDark transition shadow">✨ Todos</button>
-            <button onclick="filterCategory('Postres')" class="cat-btn bg-retroPurple text-white px-5 py-2 rounded-xl font-bold border-2 border-retroYellow transition shadow">🧁 Postres</button>
-            <button onclick="filterCategory('Desayunos')" class="cat-btn bg-retroTeal text-white px-5 py-2 rounded-xl font-bold border-2 border-retroYellow transition shadow">🥞 Desayunos</button>
-            <button onclick="filterCategory('Bebidas')" class="cat-btn bg-retroFuchsia text-white px-5 py-2 rounded-xl font-bold border-2 border-retroYellow transition shadow">🥤 Bebidas</button>
-        </div>
-
-        <!-- Catálogo de Productos -->
-        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <!-- Los productos se cargan dinámicamente desde Firebase -->
-            <div class="col-span-full text-center py-12 text-retroYellow font-bold animate-pulse">Cargando menú delicioso...</div>
-        </div>
-    </main>
-
-    <!-- MODAL / CARRITO LATERAL -->
-    <div id="cart-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex justify-end">
-        <div class="bg-retroDark border-l-4 border-retroYellow w-full max-w-md h-full flex flex-col p-6 shadow-2xl overflow-y-auto">
-            <div class="flex justify-between items-center mb-6 border-b border-retroPurple pb-4">
-                <h3 class="text-2xl font-black text-retroYellow">Tu Carrito de Pedido</h3>
-                <button onclick="toggleCart()" class="text-retroFuchsia font-bold text-xl hover:text-white">✕</button>
-            </div>
-
-            <!-- Horario de Entrega / Selección -->
-            <div class="bg-retroPurple/40 p-4 rounded-xl border border-retroYellow mb-4">
-                <label class="block text-xs font-bold text-retroYellow mb-1">📅 Fecha y Hora de Entrega:</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="date" id="order-date" class="bg-retroDark border border-retroTeal rounded-lg px-2 py-1 text-sm text-white" onchange="validateTimeSlot()">
-                    <input type="time" id="order-time" class="bg-retroDark border border-retroTeal rounded-lg px-2 py-1 text-sm text-white" onchange="validateTimeSlot()">
-                </div>
-                <p id="schedule-warning" class="text-xs text-retroFuchsia font-bold mt-2"></p>
-            </div>
-
-            <!-- Datos del Cliente -->
-            <div class="space-y-3 mb-6">
-                <div>
-                    <label class="block text-xs font-bold text-retroYellow mb-1">Nombre Completo:</label>
-                    <input type="text" id="cust-name" placeholder="Ej. María Pérez" class="w-full bg-retroPurple/30 border border-retroTeal rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-retroYellow">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-retroYellow mb-1">Teléfono / WhatsApp:</label>
-                    <input type="text" id="cust-phone" placeholder="Ej. 829-000-0000" class="w-full bg-retroPurple/30 border border-retroTeal rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-retroYellow">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-retroYellow mb-1">Tipo de Servicio:</label>
-                    <select id="service-type" class="w-full bg-retroPurple/30 border border-retroTeal rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-retroYellow" onchange="toggleAddress()">
-                        <option value="Recoger en tienda">Recoger en tienda</option>
-                        <option value="Delivery">Delivery a domicilio</option>
-                    </select>
-                </div>
-                <div id="address-box" class="hidden">
-                    <label class="block text-xs font-bold text-retroYellow mb-1">Dirección de Entrega:</label>
-                    <textarea id="cust-address" placeholder="Calle, número, sector..." class="w-full bg-retroPurple/30 border border-retroTeal rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-retroYellow" rows="2"></textarea>
-                </div>
-            </div>
-
-            <!-- Lista de items en carrito -->
-            <div id="cart-items" class="flex-grow overflow-y-auto space-y-3 mb-4 pr-1">
-                <p class="text-gray-400 text-center py-6">Tu carrito está vacío</p>
-            </div>
-
-            <!-- Total y Botón Enviar -->
-            <div class="border-t border-retroPurple pt-4 mt-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="font-bold text-lg text-white">Total:</span>
-                    <span id="cart-total" class="font-black text-2xl text-retroYellow">$0.00</span>
-                </div>
-                <button onclick="submitOrder()" class="w-full bg-retroYellow hover:bg-yellow-400 text-retroDark font-black py-3 rounded-xl shadow-lg border-2 border-retroDark transition transform hover:scale-102">
-                    🚀 Enviar Pedido a 199X Coffee
-                </button>
-            </div>
-        </div>
+      </div>
+      <div>
+        <button onclick="toggleCartModal(true)" class="btn-90s bg-[#FFD600] text-[#1E1035] font-extrabold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2">
+          <span>🛒 Mi Pedido</span>
+          <span id="hero-cart-count" class="bg-[#EC4899] text-white px-2 py-0.5 rounded-full text-xs border border-[#2E1065]">0</span>
+        </button>
+      </div>
     </div>
+  </header>
 
-    <!-- PIE DE PÁGINA -->
-    <footer class="bg-retroPurple border-t-4 border-retroYellow py-6 text-center text-xs text-retroYellow mt-12">
-        <p class="font-bold">© 2026 199X Coffee. Todos los derechos reservados.</p>
-        <p class="mt-1 text-white">Horarios: Lunes a Sábado 8am - 5pm | Domingos 10am - 2pm</p>
-    </footer>
+  <!-- MAIN STORE -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+    <!-- HERO HORARIO -->
+    <section class="rounded-3xl bg-gradient-to-r from-[#6B21A8] via-[#9333EA] to-[#EC4899] text-white p-6 sm:p-8 card-90s mb-8 relative">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div class="lg:col-span-7 space-y-3">
+          <div class="inline-flex items-center gap-2 bg-[#FFD600] text-[#2E1065] px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065]">
+            <span>📼 VIBRAS RETRO • SABOR ARTESANAL</span>
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight">
+            Disfruta el auténtico sabor en <span class="text-[#FFD600] underline decoration-[#06B6D4]">199X Coffee</span>
+          </h1>
+          <p class="text-purple-100 text-sm sm:text-base">Haz tu pedido online programando tu fecha y hora exacta de recogida o entrega.</p>
+        </div>
+        <div class="lg:col-span-5">
+          <div class="bg-white text-[#1E1035] rounded-2xl p-5 border-3 border-[#2E1065] shadow-[6px_6px_0px_#06B6D4]">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold uppercase text-purple-700">Estado del Horario</span>
+              <span id="store-status-pill" class="px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065] bg-emerald-300 text-emerald-950">● Verificando...</span>
+            </div>
+            <div class="bg-purple-50 rounded-xl p-3 border border-purple-200 mb-3">
+              <p class="text-xs text-purple-700 font-semibold">Hora actual:</p>
+              <p id="live-clock-display" class="text-lg font-retro font-extrabold text-[#6B21A8]">--:--:--</p>
+              <p id="store-status-message" class="text-xs text-gray-700 mt-1 font-medium">Validando franjas...</p>
+            </div>
+            <div class="space-y-1 text-xs font-semibold">
+              <div class="flex justify-between py-1 border-b border-dashed border-purple-200">
+                <span>📅 Lunes a Sábado:</span>
+                <span class="bg-[#FFD600] px-2 py-0.5 rounded border border-[#2E1065] font-extrabold">8:00 AM – 5:00 PM</span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span>☀️ Domingos:</span>
+                <span class="bg-[#06B6D4] px-2 py-0.5 rounded border border-[#2E1065] font-extrabold">10:00 AM – 2:00 PM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <!-- SCRIPT DE FIREBASE Y LÓGICA -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase.app.js";
-        import { getFirestore, collection, addTimestamp, getDocs, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    <!-- FILTROS -->
+    <section class="mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl card-90s">
+        <div class="flex flex-wrap gap-2">
+          <button onclick="filterStoreCategory('Todos')" data-cat="Todos" class="cat-filter-btn btn-90s bg-[#FFD600] text-[#1E1035] font-extrabold px-4 py-2 rounded-xl text-sm">✨ Todos</button>
+          <button onclick="filterStoreCategory('Desayunos')" data-cat="Desayunos" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">🥞 Desayunos</button>
+          <button onclick="filterStoreCategory('Postres')" data-cat="Postres" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">🍰 Postres</button>
+          <button onclick="filterStoreCategory('Bebidas')" data-cat="Bebidas" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">🥤 Bebidas</button>
+        </div>
+        <div class="relative w-full md:w-72">
+          <input type="text" id="store-search-input" oninput="renderStoreCatalog()" placeholder="Buscar tres leches, latte..." class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-medium focus:outline-none" />
+          <span class="absolute left-3 top-2.5">🔍</span>
+        </div>
+      </div>
+    </section>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD2vlwm3IwCOwKb2n9vjfj1g6K1X7hzAxM",
-            authDomain: "x-coffee-eb14a.firebaseapp.com",
-            projectId: "x-coffee-eb14a",
-            storageBucket: "x-coffee-eb14a.firebasestorage.app",
-            messagingSenderId: "922785951408",
-            appId: "1:922785951408:web:53380553aaa9f1b8391575",
-            measurementId: "G-LQRJP964LR"
-        };
+    <!-- CATALOGO + CHECKOUT -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div class="lg:col-span-8">
+        <div id="store-products-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-5"></div>
+      </div>
+      <aside class="lg:col-span-4 bg-white rounded-3xl p-5 card-90s lg:sticky lg:top-24" id="checkout-sidebar">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b-2 border-[#2E1065]">
+          <h2 class="text-xl font-extrabold text-[#6B21A8]">🛒 Tu Pedido</h2>
+          <span id="sidebar-cart-badge" class="bg-[#06B6D4] text-[#1E1035] font-extrabold text-xs px-2 py-1 rounded-full border border-[#2E1065]">0 items</span>
+        </div>
+        <div id="cart-items-list" class="space-y-3 max-h-56 overflow-y-auto mb-4 pr-1">
+          <div class="text-center py-6 text-gray-500 text-sm">
+            <p class="text-3xl mb-1">☕</p>
+            <p class="font-semibold">Tu carrito está vacío</p>
+          </div>
+        </div>
+        <div class="bg-purple-50 rounded-2xl p-3 border-2 border-[#2E1065] mb-4 space-y-1 text-xs">
+          <div class="flex justify-between font-semibold"><span>Subtotal:</span><span id="cart-subtotal">$0.00</span></div>
+          <div class="flex justify-between text-base font-extrabold text-[#6B21A8] pt-1 border-t border-purple-200"><span>Total:</span><span id="cart-total">$0.00</span></div>
+        </div>
+        <form id="customer-checkout-form" onsubmit="submitWebOrder(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Tu Nombre *</label>
+            <input type="text" id="cust-name" required placeholder="Ej. Camila Rodríguez" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Teléfono / WhatsApp *</label>
+            <input type="tel" id="cust-phone" required placeholder="Ej. 809-555-1990" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Fecha *</label>
+              <input type="date" id="cust-date" required onchange="updateAvailableTimeSlots()" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs font-bold bg-[#FFD600]/20" />
+            </div>
+            <div>
+              <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Hora *</label>
+              <select id="cust-time" required class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs font-bold bg-[#06B6D4]/20"></select>
+            </div>
+          </div>
+          <p id="schedule-helper-text" class="text-[11px] font-semibold text-purple-800 bg-yellow-100 p-2 rounded-lg border border-yellow-300">Selecciona fecha y hora.</p>
+          <div>
+            <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Pago</label>
+            <select id="cust-payment" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs">
+              <option value="Efectivo al recoger">💵 Efectivo al recoger</option>
+              <option value="Transferencia">🏦 Transferencia</option>
+              <option value="Tarjeta en Local">💳 Tarjeta</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Notas</label>
+            <input type="text" id="cust-notes" placeholder="Ej. Sin azúcar..." class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs" />
+          </div>
+          <button type="submit" class="w-full btn-90s bg-[#EC4899] hover:bg-pink-600 text-white font-extrabold py-3 rounded-2xl text-sm">🚀 Confirmar Pedido Web</button>
+        </form>
+      </aside>
+    </div>
+  </main>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+  <!-- MODAL CARRITO MÓVIL -->
+  <div id="mobile-cart-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4 lg:hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full border-3 border-[#2E1065] shadow-[6px_6px_0px_#FFD600]">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-extrabold text-lg text-[#6B21A8]">🛒 Tu Pedido</h3>
+        <button onclick="toggleCartModal(false)" class="px-3 py-1 rounded bg-gray-200 text-xs font-bold">Cerrar ✕</button>
+      </div>
+      <button onclick="scrollToCheckout()" class="w-full btn-90s bg-[#EC4899] text-white font-extrabold py-3 rounded-2xl text-sm">Ir al Formulario 👇</button>
+    </div>
+  </div>
 
-        let products = [];
-        let cart = [];
-        let currentFilter = 'all';
+  <footer class="bg-[#2E1065] text-purple-200 py-6 px-4 mt-12 border-t-4 border-[#FFD600]">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs">
+      <span class="font-retro font-extrabold text-sm text-[#FFD600]">199X Coffee</span>
+      <p>L-S 8:00 AM - 5:00 PM | Dom 10:00 AM - 2:00 PM</p>
+    </div>
+  </footer>
 
-        // Productos por defecto si Firebase está vacío inicialmente
-        const defaultProducts = [
-            { id: '1', name: 'Tres Leches', category: 'Postres', price: 180, image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=400' },
-            { id: '2', name: 'Flan de Caramelo', category: 'Postres', price: 150, image: 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=400' },
-            { id: '3', name: 'Beso de Ángel', category: 'Postres', price: 160, image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400' },
-            { id: '4', name: 'Mini Pancakes con Tocino', category: 'Desayunos', price: 250, image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400' },
-            { id: '5', name: 'Croissant de Queso Crema', category: 'Desayunos', price: 190, image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400' },
-            { id: '6', name: 'Latte 199X', category: 'Bebidas', price: 140, image: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400' },
-            { id: '7', name: 'Frappe Retro', category: 'Bebidas', price: 220, image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400' }
-        ];
+  <!-- SCRIPT FIREBASE Y TIENDA -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Escuchar productos en tiempo real desde Firestore
-        function loadProducts() {
-            onSnapshot(collection(db, "199x_products"), (snapshot) => {
-                products = [];
-                snapshot.forEach((doc) => {
-                    products.push({ id: doc.id, ...doc.data() });
-                });
-                if (products.length === 0) {
-                    products = defaultProducts;
-                }
-                renderProducts();
-            }, (error) => {
-                console.warn("Usando catálogo local por conexión:", error);
-                products = defaultProducts;
-                renderProducts();
-            });
+    const firebaseConfig = {
+      apiKey: "AIzaSyD2vlwm3IwCOwKb2n9vjfj1g6K1X7hzAxM",
+      authDomain: "x-coffee-eb14a.firebaseapp.com",
+      projectId: "x-coffee-eb14a",
+      storageBucket: "x-coffee-eb14a.firebasestorage.app",
+      messagingSenderId: "922785951408",
+      appId: "1:922785951408:web:53380553aaa9f1b8391575"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = "199x-coffee-app";
+
+    const state = { products: [], cart: [], selectedCategory: 'Todos' };
+
+    async function initStore() {
+      setupDefaultDates();
+      startLiveClock();
+      await signInAnonymously(auth);
+
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), (snapshot) => {
+        state.products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderStoreCatalog();
+      });
+    }
+
+    function startLiveClock() {
+      setInterval(() => {
+        const now = new Date();
+        const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const day = now.getDay();
+        const mins = now.getHours() * 60 + now.getMinutes();
+        document.getElementById('live-clock-display').textContent = `${days[day]}, ${now.toLocaleTimeString('es-ES', { hour12: true })}`;
+
+        const isOpen = day === 0 ? (mins >= 600 && mins < 840) : (mins >= 480 && mins < 1020);
+        const pill = document.getElementById('store-status-pill');
+        if (isOpen) {
+          pill.textContent = '● ABIERTO AHORA';
+          pill.className = 'px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065] bg-[#06B6D4] text-[#1E1035]';
+        } else {
+          pill.textContent = '● CERRADO (PROGRAMA TU PEDIDO)';
+          pill.className = 'px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065] bg-[#FFD600] text-[#1E1035]';
         }
+      }, 1000);
+    }
 
-        window.renderProducts = function() {
-            const grid = document.getElementById('products-grid');
-            const filtered = currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter);
-            
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 text-retroYellow">No hay productos en esta categoría.</div>`;
-                return;
-            }
+    function setupDefaultDates() {
+      const today = new Date().toISOString().split('T')[0];
+      const el = document.getElementById('cust-date');
+      if (el) { el.min = today; el.value = today; updateAvailableTimeSlots(); }
+    }
 
-            grid.innerHTML = filtered.map(p => `
-                <div class="bg-retroPurple/30 border-2 border-retroTeal rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between hover:border-retroYellow transition transform hover:-translate-y-1">
-                    <img src="${p.image || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400'}" alt="${p.name}" class="h-48 w-full object-cover">
-                    <div class="p-4 flex flex-col flex-grow">
-                        <span class="text-xs font-bold text-retroTeal uppercase tracking-wider">${p.category}</span>
-                        <h3 class="text-xl font-bold text-white mt-1 mb-2">${p.name}</h3>
-                        <div class="mt-auto flex justify-between items-center pt-2">
-                            <span class="text-xl font-black text-retroYellow">$${p.price}</span>
-                            <button onclick="addToCart('${p.id}')" class="bg-retroFuchsia hover:bg-pink-600 text-white px-4 py-2 rounded-xl font-bold border border-retroYellow text-sm shadow">+ Agregar</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+    window.updateAvailableTimeSlots = function() {
+      const dateStr = document.getElementById('cust-date').value;
+      const select = document.getElementById('cust-time');
+      if (!dateStr || !select) return;
+      const day = new Date(dateStr).getDay();
+      const isSun = day === 0;
+      const start = isSun ? 10 : 8;
+      const end = isSun ? 14 : 17;
+
+      select.innerHTML = '';
+      for (let h = start; h <= end; h++) {
+        for (let m of [0, 30]) {
+          if (h === end && m > 0) continue;
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+          const label = `${h12}:${m === 0 ? '00' : '30'} ${ampm}`;
+          const opt = document.createElement('option');
+          opt.value = label; opt.textContent = label;
+          select.appendChild(opt);
         }
+      }
+    };
 
-        window.filterCategory = function(cat) {
-            currentFilter = cat;
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.classList.remove('bg-retroYellow', 'text-retroDark');
-                btn.classList.add('bg-retroPurple', 'text-white');
-            });
-            event.target.classList.remove('bg-retroPurple', 'text-white');
-            event.target.classList.add('bg-retroYellow', 'text-retroDark');
-            renderProducts();
-        }
+    window.filterStoreCategory = function(cat) {
+      state.selectedCategory = cat;
+      document.querySelectorAll('.cat-filter-btn').forEach(b => {
+        b.className = b.dataset.cat === cat ? 'cat-filter-btn btn-90s bg-[#FFD600] text-[#1E1035] font-extrabold px-4 py-2 rounded-xl text-sm' : 'cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm';
+      });
+      renderStoreCatalog();
+    };
 
-        window.addToCart = function(id) {
-            const prod = products.find(p => p.id === id);
-            if (!prod) return;
-            const existing = cart.find(item => item.id === id);
-            if (existing) {
-                existing.qty++;
-            } else {
-                cart.push({ ...prod, qty: 1 });
-            }
-            updateCartUI();
-            toggleCart();
-        }
+    window.renderStoreCatalog = function() {
+      const grid = document.getElementById('store-products-grid');
+      const search = (document.getElementById('store-search-input')?.value || '').toLowerCase();
+      const filtered = state.products.filter(p => (state.selectedCategory === 'Todos' || p.category === state.selectedCategory) && (p.name.toLowerCase().includes(search) || p.description.toLowerCase().includes(search)));
 
-        window.updateCartUI = function() {
-            const badge = document.getElementById('cart-badge');
-            const itemsContainer = document.getElementById('cart-items');
-            const totalEl = document.getElementById('cart-total');
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-3xl card-90s text-center"><p class="font-extrabold text-[#6B21A8]">No hay productos disponibles.</p></div>`;
+        return;
+      }
 
-            const totalQty = cart.reduce((sum, i) => sum + i.qty, 0);
-            badge.innerText = totalQty;
+      grid.innerHTML = filtered.map(p => `
+        <div class="bg-white rounded-3xl overflow-hidden card-90s flex flex-col justify-between ${p.available === false ? 'opacity-60' : ''}">
+          <div>
+            <div class="relative h-44 bg-purple-100 border-b-2 border-[#2E1065]">
+              <img src="${p.image}" onerror="this.src='https://placehold.co/600x400/6B21A8/FFD600?text=199X'" class="w-full h-full object-cover" />
+              <span class="absolute bottom-3 right-3 bg-[#2E1065] text-[#FFD600] px-3 py-1 rounded-xl font-retro font-extrabold text-sm border border-[#FFD600]">$${Number(p.price).toFixed(2)}</span>
+            </div>
+            <div class="p-4">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]">${p.category}</span>
+              <h3 class="font-extrabold text-base text-[#1E1035] mt-1">${p.name}</h3>
+              <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.description}</p>
+            </div>
+          </div>
+          <div class="p-4 pt-0">
+            ${p.available !== false ? `<button onclick="addToCart('${p.id}')" class="w-full btn-90s bg-[#6B21A8] text-white font-extrabold py-2 rounded-xl text-xs">+ Agregar</button>` : `<button disabled class="w-full bg-gray-200 text-gray-500 py-2 rounded-xl text-xs font-bold">Agotado</button>`}
+          </div>
+        </div>
+      `).join('');
+    };
 
-            if (cart.length === 0) {
-                itemsContainer.innerHTML = `<p class="text-gray-400 text-center py-6">Tu carrito está vacío</p>`;
-                totalEl.innerText = '$0.00';
-                return;
-            }
+    window.addToCart = function(id) {
+      const prod = state.products.find(p => p.id === id);
+      if (!prod) return;
+      const exist = state.cart.find(i => i.id === id);
+      if (exist) exist.qty++; else state.cart.push({ id: prod.id, name: prod.name, price: Number(prod.price), qty: 1 });
+      renderCart();
+      showToast(`✨ Agregado: ${prod.name}`);
+    };
 
-            itemsContainer.innerHTML = cart.map(item => `
-                <div class="flex justify-between items-center bg-retroDark border border-retroTeal p-3 rounded-xl">
-                    <div>
-                        <h4 class="font-bold text-sm text-white">${item.name}</h4>
-                        <span class="text-xs text-retroYellow">$${item.price} c/u</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="changeQty('${item.id}', -1)" class="bg-retroPurple text-white px-2 rounded font-bold">-</button>
-                        <span class="text-sm font-bold text-white">${item.qty}</span>
-                        <button onclick="changeQty('${item.id}', 1)" class="bg-retroPurple text-white px-2 rounded font-bold">+</button>
-                    </div>
-                </div>
-            `).join('');
+    window.updateCartQty = function(id, delta) {
+      const idx = state.cart.findIndex(i => i.id === id);
+      if (idx === -1) return;
+      state.cart[idx].qty += delta;
+      if (state.cart[idx].qty <= 0) state.cart.splice(idx, 1);
+      renderCart();
+    };
 
-            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-            totalEl.innerText = `$${total.toFixed(2)}`;
-        }
+    function renderCart() {
+      const list = document.getElementById('cart-items-list');
+      const totalItems = state.cart.reduce((s, i) => s + i.qty, 0);
+      const totalAmount = state.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+      document.getElementById('hero-cart-count').textContent = totalItems;
+      document.getElementById('sidebar-cart-badge').textContent = `${totalItems} items`;
+      document.getElementById('cart-subtotal').textContent = `$${totalAmount.toFixed(2)}`;
+      document.getElementById('cart-total').textContent = `$${totalAmount.toFixed(2)}`;
 
-        window.changeQty = function(id, delta) {
-            const item = cart.find(i => i.id === id);
-            if (!item) return;
-            item.qty += delta;
-            if (item.qty <= 0) {
-                cart = cart.filter(i => i.id !== id);
-            }
-            updateCartUI();
-        }
+      if (state.cart.length === 0) {
+        list.innerHTML = `<div class="text-center py-6 text-gray-500 text-sm"><p class="text-3xl mb-1">☕</p><p class="font-semibold">Tu carrito está vacío</p></div>`;
+        return;
+      }
+      list.innerHTML = state.cart.map(i => `
+        <div class="flex items-center justify-between bg-purple-50 p-2 rounded-xl border border-purple-200 text-xs">
+          <div><p class="font-extrabold">${i.name}</p><p class="font-bold text-[#6B21A8]">$${(i.price * i.qty).toFixed(2)}</p></div>
+          <div class="flex items-center gap-1">
+            <button onclick="updateCartQty('${i.id}', -1)" class="w-5 h-5 bg-white border font-bold">-</button>
+            <span class="font-extrabold w-4 text-center">${i.qty}</span>
+            <button onclick="updateCartQty('${i.id}', 1)" class="w-5 h-5 bg-[#FFD600] border font-bold">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
 
-        window.toggleCart = function() {
-            const modal = document.getElementById('cart-modal');
-            modal.classList.toggle('hidden');
-        }
+    window.submitWebOrder = async function(e) {
+      e.preventDefault();
+      if (state.cart.length === 0) { showToast('⚠️ Carrito vacío'); return; }
+      const total = state.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+      const order = {
+        channel: 'Web',
+        customerName: document.getElementById('cust-name').value.trim(),
+        customerPhone: document.getElementById('cust-phone').value.trim(),
+        date: document.getElementById('cust-date').value,
+        time: document.getElementById('cust-time').value,
+        paymentMethod: document.getElementById('cust-payment').value,
+        notes: document.getElementById('cust-notes').value.trim(),
+        status: 'Pendiente',
+        items: state.cart.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
+        total: Number(total.toFixed(2)),
+        createdAt: Date.now()
+      };
+      try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), order);
+        state.cart = [];
+        renderCart();
+        document.getElementById('customer-checkout-form').reset();
+        setupDefaultDates();
+        showToast('🎉 ¡Pedido enviado con éxito!');
+      } catch (err) { alert('Error al enviar pedido'); }
+    };
 
-        window.toggleAddress = function() {
-            const type = document.getElementById('service-type').value;
-            const addrBox = document.getElementById('address-box');
-            if (type === 'Delivery') {
-                addrBox.classList.remove('hidden');
-            } else {
-                addrBox.classList.add('hidden');
-            }
-        }
+    window.toggleCartModal = function(show) {
+      if (window.innerWidth >= 1024) { scrollToCheckout(); return; }
+      const m = document.getElementById('mobile-cart-modal');
+      m.classList.toggle('hidden', !show); m.classList.toggle('flex', show);
+    };
 
-        // Validador de Horarios L-S (8am-5pm) y Domingos (10am-2pm)
-        function checkStoreHours() {
-            const now = new Date();
-            const day = now.getDay(); // 0 = Domingo, 1-6 = L-S
-            const hour = now.getHours();
-            const statusEl = document.getElementById('store-status');
+    window.scrollToCheckout = function() {
+      toggleCartModal(false);
+      document.getElementById('checkout-sidebar').scrollIntoView({ behavior: 'smooth' });
+    };
 
-            let isOpen = false;
-            if (day >= 1 && day <= 6) { // Lunes a Sábado
-                if (hour >= 8 && hour < 17) isOpen = true;
-            } else if (day === 0) { // Domingo
-                if (hour >= 10 && hour < 14) isOpen = true;
-            }
+    function showToast(msg) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'bg-[#FFD600] text-[#1E1035] px-4 py-3 rounded-xl border-2 border-[#2E1065] shadow-[4px_4px_0px_#2E1065] font-extrabold text-xs';
+      t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
 
-            if (isOpen) {
-                statusEl.innerHTML = '🟢 Abierto Ahora';
-                statusEl.className = 'text-xs font-semibold text-green-400 uppercase tracking-widest';
-            } else {
-                statusEl.innerHTML = '🔴 Cerrado (Ver Horario)';
-                statusEl.className = 'text-xs font-semibold text-retroFuchsia uppercase tracking-widest';
-            }
-        }
-
-        window.validateTimeSlot = function() {
-            const dateVal = document.getElementById('order-date').value;
-            const timeVal = document.getElementById('order-time').value;
-            const warnEl = document.getElementById('schedule-warning');
-            warnEl.innerText = '';
-
-            if (!dateVal || !timeVal) return;
-
-            const selectedDate = new Date(dateVal + 'T' + timeVal);
-            const day = selectedDate.getDay();
-            const hour = selectedDate.getHours();
-            const minutes = selectedDate.getMinutes();
-            const timeDecimal = hour + minutes / 60;
-
-            if (day >= 1 && day <= 6) {
-                if (timeDecimal < 8 || timeDecimal >= 17) {
-                    warnEl.innerText = '⚠️ L-S atendemos de 8:00 AM a 5:00 PM.';
-                }
-            } else if (day === 0) {
-                if (timeDecimal < 10 || timeDecimal >= 14) {
-                    warnEl.innerText = '⚠️ Los domingos atendemos de 10:00 AM a 2:00 PM.';
-                }
-            }
-        }
-
-        window.submitOrder = async function() {
-            const name = document.getElementById('cust-name').value.trim();
-            const phone = document.getElementById('cust-phone').value.trim();
-            const date = document.getElementById('order-date').value;
-            const time = document.getElementById('order-time').value;
-            const service = document.getElementById('service-type').value;
-            const address = document.getElementById('cust-address').value.trim();
-
-            if (!name || !phone || !date || !time) {
-                alert('Por favor completa tu nombre, teléfono, fecha y hora de entrega.');
-                return;
-            }
-
-            if (cart.length === 0) {
-                alert('Tu carrito está vacío.');
-                return;
-            }
-
-            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-
-            const newOrder = {
-                clientName: name,
-                clientPhone: phone,
-                serviceType: service,
-                address: address || 'N/A (Recoge en tienda)',
-                date: date,
-                time: time,
-                items: cart,
-                total: total,
-                status: 'Pendiente',
-                origin: 'Web Online',
-                createdAt: new Date().toISOString()
-            };
-
-            try {
-                await addDoc(collection(db, "199x_orders"), newOrder);
-                alert('¡Pedido enviado con éxito! 199X Coffee lo ha recibido.');
-                cart = [];
-                updateCartUI();
-                toggleCart();
-            } catch (e) {
-                console.error("Error al enviar pedido:", e);
-                alert('Pedido guardado localmente / enviado. ¡Gracias!');
-                cart = [];
-                updateCartUI();
-                toggleCart();
-            }
-        }
-
-        // Inicializar fecha por defecto en el input
-        document.getElementById('order-date').valueAsDate = new Date();
-        checkStoreHours();
-        loadProducts();
-    </script>
+    window.addEventListener('DOMContentLoaded', initStore);
+  </script>
 </body>
 </html>
