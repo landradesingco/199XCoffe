@@ -22,7 +22,7 @@
     </script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs unificados v11.0.2 -->
+    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
@@ -37,19 +37,24 @@
             measurementId: "G-LQRJP964LR"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
 
-        window.db = db;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.getDocs = getDocs;
-        window.doc = doc;
-        window.updateDoc = updateDoc;
-        window.deleteDoc = deleteDoc;
-        window.onSnapshot = onSnapshot;
+            window.db = db;
+            window.collection = collection;
+            window.addDoc = addDoc;
+            window.getDocs = getDocs;
+            window.doc = doc;
+            window.updateDoc = updateDoc;
+            window.deleteDoc = deleteDoc;
+            window.onSnapshot = onSnapshot;
 
-        window.dispatchEvent(new Event('firebase-ready'));
+            console.log("Firebase conectado correctamente.");
+            window.dispatchEvent(new Event('firebase-ready'));
+        } catch (error) {
+            console.error("Error al inicializar Firebase:", error);
+        }
     </script>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
@@ -264,7 +269,11 @@
             if(localStorage.getItem('199x_logged') === 'true') {
                 document.getElementById('pinScreen').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
-                window.addEventListener('firebase-ready', initAdminData);
+                if(window.db) {
+                    initAdminData();
+                } else {
+                    window.addEventListener('firebase-ready', initAdminData);
+                }
             }
         });
 
@@ -284,9 +293,9 @@
             const db = window.db;
             if(!db) return;
 
-            // 1. Pedidos (Web + Manual) en colección unificada '199x_orders'
             window.onSnapshot(window.collection(db, "199x_orders"), (snapshot) => {
                 const container = document.getElementById('liveOrdersContainer');
+                if(!container) return;
                 container.innerHTML = '';
                 if(snapshot.empty) {
                     container.innerHTML = '<p class="text-gray-400">No hay pedidos recibidos aún.</p>';
@@ -334,15 +343,14 @@
                 });
             });
 
-            // 2. Menú de Productos en colección unificada '199x_products'
             window.onSnapshot(window.collection(db, "199x_products"), (snapshot) => {
                 globalProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderAdminMenu();
             });
 
-            // 3. Inventario
             window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
                 const tbody = document.getElementById('inventoryTableBody');
+                if(!tbody) return;
                 tbody.innerHTML = '';
                 snapshot.forEach(docSnap => {
                     const item = docSnap.data();
@@ -361,9 +369,9 @@
                 });
             });
 
-            // 4. Contabilidad y Nómina
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
                 const list = document.getElementById('expensesList');
+                if(!list) return;
                 list.innerHTML = '';
                 let totalExpenses = 0;
                 snapshot.forEach(docSnap => {
@@ -386,12 +394,16 @@
                     orderSnap.forEach(o => {
                         totalSales += Number(o.data().total || 0);
                     });
-                    document.getElementById('accTotalSales').innerText = `$${totalSales.toFixed(2)}`;
-                    document.getElementById('accTotalExpenses').innerText = `$${totalExpenses.toFixed(2)}`;
-                    const net = totalSales - totalExpenses;
+                    const salesEl = document.getElementById('accTotalSales');
+                    const expEl = document.getElementById('accTotalExpenses');
                     const netEl = document.getElementById('accNetBalance');
-                    netEl.innerText = `$${net.toFixed(2)}`;
-                    netEl.className = `text-3xl font-black mt-2 ${net >= 0 ? 'text-retroYellow' : 'text-red-500'}`;
+                    if(salesEl) salesEl.innerText = `$${totalSales.toFixed(2)}`;
+                    if(expEl) expEl.innerText = `$${totalExpenses.toFixed(2)}`;
+                    if(netEl) {
+                        const net = totalSales - totalExpenses;
+                        netEl.innerText = `$${net.toFixed(2)}`;
+                        netEl.className = `text-3xl font-black mt-2 ${net >= 0 ? 'text-retroYellow' : 'text-red-500'}`;
+                    }
                 });
             });
         }
@@ -406,6 +418,7 @@
 
         window.renderAdminMenu = function() {
             const grid = document.getElementById('adminMenuGrid');
+            if(!grid) return;
             const search = (document.getElementById('adminSearchInput')?.value || '').toLowerCase();
             const filtered = globalProducts.filter(p => (currentAdminCat === 'Todos' || p.category === currentAdminCat) && ((p.name || '').toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search)));
 
@@ -475,7 +488,7 @@
         async function saveProduct(e) {
             e.preventDefault();
             const statusMsg = document.getElementById('formStatusMsg');
-            statusMsg.innerText = "Procesando...";
+            if(statusMsg) statusMsg.innerText = "Procesando...";
 
             const id = document.getElementById('editingProductId').value;
             const name = document.getElementById('prodName').value;
@@ -497,7 +510,7 @@
             const db = window.db;
             const statusMsg = document.getElementById('formStatusMsg');
             try {
-                statusMsg.innerText = "Guardando en Firebase...";
+                if(statusMsg) statusMsg.innerText = "Guardando en Firebase...";
                 if(id) {
                     await window.updateDoc(window.doc(db, "199x_products", id), data);
                 } else {
@@ -506,11 +519,11 @@
                 document.getElementById('productForm').reset();
                 document.getElementById('editingProductId').value = '';
                 document.getElementById('menuFormTitle').innerText = 'Agregar Nuevo Producto';
-                statusMsg.innerText = "¡Guardado con éxito!";
-                setTimeout(() => { statusMsg.innerText = ""; }, 3000);
+                if(statusMsg) statusMsg.innerText = "¡Guardado con éxito!";
+                setTimeout(() => { if(statusMsg) statusMsg.innerText = ""; }, 3000);
             } catch (err) {
                 console.error(err);
-                statusMsg.innerText = "Error al guardar.";
+                if(statusMsg) statusMsg.innerText = "Error al guardar.";
             }
         }
 
