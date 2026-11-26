@@ -40,7 +40,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Hacer disponibles las funciones de Firebase globalmente
         window.db = db;
         window.collection = collection;
         window.addDoc = addDoc;
@@ -51,7 +50,6 @@
         window.onSnapshot = onSnapshot;
         window.setDoc = setDoc;
 
-        // Disparar evento cuando Firebase esté listo
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 </head>
@@ -83,7 +81,6 @@
 
     <!-- PANEL ADMINISTRATIVO PRINCIPAL -->
     <div id="adminPanel" class="hidden min-h-screen flex flex-col">
-        <!-- Barra superior -->
         <header class="bg-retroPurple border-b-4 border-retroYellow shadow-xl px-6 py-4 flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
                 <div class="bg-retroYellow text-retroPurple font-black text-xl px-3 py-2 rounded-xl shadow">199X</div>
@@ -99,7 +96,6 @@
             </div>
         </header>
 
-        <!-- Pestañas de Navegación -->
         <nav class="bg-gray-800 border-b border-gray-700 px-6 flex overflow-x-auto space-x-2 py-3">
             <button onclick="switchTab('orders')" id="tab-orders" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-retroYellow text-retroPurple shadow transition">Pedidos En Vivo</button>
             <button onclick="switchTab('whatsapp')" id="tab-whatsapp" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition">Pedidos WhatsApp (Manual)</button>
@@ -108,7 +104,6 @@
             <button onclick="switchTab('accounting')" id="tab-accounting" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition">Contabilidad & Nómina</button>
         </nav>
 
-        <!-- Contenido de las pestañas -->
         <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
             
             <!-- 1. PEDIDOS EN VIVO -->
@@ -138,9 +133,7 @@
                         <button type="submit" class="bg-retroTurquoise text-white font-bold py-2 px-6 rounded-xl shadow hover:opacity-90">Guardar Pedido</button>
                     </form>
                 </div>
-                <div id="manualOrdersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Listado de manuales -->
-                </div>
+                <div id="manualOrdersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
             <!-- 3. GESTIÓN DE MENÚ Y FOTOS -->
@@ -151,9 +144,9 @@
                         <input type="hidden" id="editingProductId">
                         <input type="text" id="prodName" placeholder="Nombre del producto" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                         <select id="prodCategory" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
-                            <option value="postres">Postres</option>
-                            <option value="desayunos">Desayunos</option>
-                            <option value="bebidas">Bebidas</option>
+                            <option value="Postres">Postres</option>
+                            <option value="Desayunos">Desayunos</option>
+                            <option value="Bebidas">Bebidas</option>
                         </select>
                         <input type="number" step="0.01" id="prodPrice" placeholder="Precio ($)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                         <input type="file" id="prodImageFile" accept="image/*" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm file:mr-4 file:py-1 file:px-4 file:rounded-lg file:border-0 file:bg-retroFuchsia file:text-white">
@@ -162,9 +155,7 @@
                     </form>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="adminMenuGrid">
-                    <!-- Productos cargados -->
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="adminMenuGrid"></div>
             </section>
 
             <!-- 4. INVENTARIO -->
@@ -187,9 +178,7 @@
                                     <th class="py-3 px-4">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="inventoryTableBody">
-                                <!-- Filas de inventario -->
-                            </tbody>
+                            <tbody id="inventoryTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -228,9 +217,7 @@
 
                     <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
                         <h3 class="text-lg font-bold text-retroTurquoise mb-4">Historial de Egresos y Nómina</h3>
-                        <div id="expensesList" class="space-y-3 max-h-64 overflow-y-auto">
-                            <!-- Lista de gastos -->
-                        </div>
+                        <div id="expensesList" class="space-y-3 max-h-64 overflow-y-auto"></div>
                     </div>
                 </div>
             </section>
@@ -239,7 +226,6 @@
     </div>
 
     <script>
-        // Sistema de PIN
         function verifyPin(e) {
             e.preventDefault();
             const pin = document.getElementById('pinInput').value;
@@ -258,7 +244,6 @@
             location.reload();
         }
 
-        // Comprobar sesión activa
         window.addEventListener('DOMContentLoaded', () => {
             if(localStorage.getItem('199x_logged') === 'true') {
                 document.getElementById('pinScreen').classList.add('hidden');
@@ -279,12 +264,10 @@
             activeTab.classList.add('bg-retroYellow', 'text-retroPurple');
         }
 
-        // Datos y conexión con Firebase en tiempo real
         function initAdminData() {
             const db = window.db;
             if(!db) return;
 
-            // 1. Escuchar Pedidos Web
             window.onSnapshot(window.collection(db, "199x_orders"), (snapshot) => {
                 const container = document.getElementById('liveOrdersContainer');
                 container.innerHTML = '';
@@ -302,16 +285,19 @@
                     div.innerHTML = `
                         <div class="flex justify-between items-start mb-3">
                             <div>
-                                <span class="text-xs bg-retroPurple text-retroYellow px-2 py-1 rounded font-bold">${order.type || 'Recoger'}</span>
+                                <span class="text-xs bg-retroPurple text-retroYellow px-2 py-1 rounded font-bold">${order.channel || order.type || 'Web'}</span>
                                 <h3 class="text-lg font-black text-white mt-1">${order.customerName}</h3>
-                                <p class="text-xs text-gray-400">${order.phone} • ${order.date || ''} ${order.time || ''}</p>
+                                <p class="text-xs text-gray-400">${order.customerPhone || order.phone || ''} • ${order.date || ''} ${order.time || ''}</p>
                             </div>
                             <span class="text-retroTurquoise font-black text-lg">$${order.total}</span>
                         </div>
                         <ul class="mb-4 bg-gray-900 p-3 rounded-xl">${itemsList}</ul>
-                        ${order.address ? `<p class="text-xs text-gray-300 mb-3"><strong>Dirección:</strong> ${order.address}</p>` : ''}
+                        <div class="mb-3 text-xs bg-purple-950/50 p-2 rounded-lg border border-purple-800">
+                            <span class="font-bold text-retroYellow">Pago:</span> ${order.paymentMethod || 'Transferencia'} <br>
+                            <span class="font-bold text-retroYellow">Estado:</span> <span class="text-pink-400 font-bold">${order.status || 'Pendiente'}</span>
+                        </div>
                         <div class="flex gap-2">
-                            <a href="https://wa.me/${order.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(order.customerName)},%20te%20escribimos%20de%20199X%20Coffee%20sobre%20tu%20pedido..." target="_blank" class="flex-1 bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
+                            <a href="https://wa.me/1${(order.customerPhone || order.phone || '').replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(order.customerName)},%20te%20escribimos%20de%20199X%20Coffee%20sobre%20tu%20pedido..." target="_blank" class="flex-1 bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
                                 <i class="fa-brands fa-whatsapp"></i> WhatsApp
                             </a>
                             <button onclick="updateOrderStatus('${id}', '${order.status === 'Completado' ? 'Pendiente' : 'Completado'}')" class="px-3 py-2 rounded-xl text-xs font-bold ${order.status === 'Completado' ? 'bg-gray-700 text-white' : 'bg-retroYellow text-retroPurple'}">
@@ -323,7 +309,6 @@
                 });
             });
 
-            // 2. Escuchar Menú
             window.onSnapshot(window.collection(db, "199x_products"), (snapshot) => {
                 const grid = document.getElementById('adminMenuGrid');
                 grid.innerHTML = '';
@@ -349,7 +334,6 @@
                 });
             });
 
-            // 3. Inventario
             window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
                 const tbody = document.getElementById('inventoryTableBody');
                 tbody.innerHTML = '';
@@ -370,7 +354,6 @@
                 });
             });
 
-            // 4. Contabilidad y Nómina
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
                 const list = document.getElementById('expensesList');
                 list.innerHTML = '';
@@ -390,7 +373,6 @@
                     list.appendChild(div);
                 });
 
-                // Calcular ventas totales desde pedidos
                 window.getDocs(window.collection(db, "199x_orders")).then(orderSnap => {
                     let totalSales = 0;
                     orderSnap.forEach(o => {
@@ -406,10 +388,46 @@
             });
         }
 
-        // Funciones de gestión de productos
+        // Función para comprimir imágenes automáticamente antes de subir
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400;
+                    const MAX_HEIGHT = 400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Comprimir a JPEG con calidad 0.7 (muy liviano para Firebase)
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    callback(dataUrl);
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
         async function saveProduct(e) {
             e.preventDefault();
-            const db = window.db;
             const id = document.getElementById('editingProductId').value;
             const name = document.getElementById('prodName').value;
             const category = document.getElementById('prodCategory').value;
@@ -420,12 +438,9 @@
             let imageUrl = 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500';
 
             if(fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = async function(uploadEvent) {
-                    imageUrl = uploadEvent.target.result;
-                    await commitProductData(id, { name, category, price, description, image: imageUrl });
-                };
-                reader.readAsDataURL(fileInput.files[0]);
+                compressImage(fileInput.files[0], async function(compressedUrl) {
+                    await commitProductData(id, { name, category, price, description, image: compressedUrl });
+                });
             } else {
                 await commitProductData(id, { name, category, price, description });
             }
@@ -433,17 +448,22 @@
 
         async function commitProductData(id, data) {
             const db = window.db;
-            if(id) {
-                await window.updateDoc(window.doc(db, "199x_products", id), data);
-            } else {
-                await window.addDoc(window.collection(db, "199x_products"), data);
+            try {
+                if(id) {
+                    await window.updateDoc(window.doc(db, "199x_products", id), data);
+                } else {
+                    await window.addDoc(window.collection(db, "199x_products"), data);
+                }
+                document.getElementById('prodName').value = '';
+                document.getElementById('prodPrice').value = '';
+                document.getElementById('prodDesc').value = '';
+                document.getElementById('prodImageFile').value = '';
+                document.getElementById('editingProductId').value = '';
+                document.getElementById('menuFormTitle').innerText = 'Agregar Nuevo Producto';
+                alert('¡Producto guardado con éxito en la web!');
+            } catch (err) {
+                alert('Error al guardar: La imagen es muy pesada o hubo un problema de conexión.');
             }
-            document.getElementById('prodName').value = '';
-            document.getElementById('prodPrice').value = '';
-            document.getElementById('prodDesc').value = '';
-            document.getElementById('editingProductId').value = '';
-            document.getElementById('menuFormTitle').innerText = 'Agregar Nuevo Producto';
-            alert('¡Producto guardado con éxito!');
         }
 
         function editProduct(id, name, category, price, description) {
@@ -479,7 +499,7 @@
                 phone,
                 items: [{ name: details, qty: 1, price: total }],
                 total,
-                type: type,
+                channel: type,
                 status: 'Pendiente',
                 date: new Date().toLocaleDateString(),
                 time: new Date().toLocaleTimeString()
