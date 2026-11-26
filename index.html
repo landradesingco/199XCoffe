@@ -207,9 +207,8 @@
 
   <!-- SCRIPT FIREBASE Y TIENDA -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD2vlwm3IwCOwKb2n9vjfj1g6K1X7hzAxM",
@@ -217,22 +216,21 @@
       projectId: "x-coffee-eb14a",
       storageBucket: "x-coffee-eb14a.firebasestorage.app",
       messagingSenderId: "922785951408",
-      appId: "1:922785951408:web:53380553aaa9f1b8391575"
+      appId: "1:922785951408:web:53380553aaa9f1b8391575",
+      measurementId: "G-LQRJP964LR"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
-    const appId = "199x-coffee-app";
 
     const state = { products: [], cart: [], selectedCategory: 'Todos' };
 
     async function initStore() {
       setupDefaultDates();
       startLiveClock();
-      await signInAnonymously(auth);
 
-      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), (snapshot) => {
+      // Escuchar productos en tiempo real desde la colección unificada '199x_products'
+      onSnapshot(collection(db, '199x_products'), (snapshot) => {
         state.products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         renderStoreCatalog();
       });
@@ -298,10 +296,10 @@
     window.renderStoreCatalog = function() {
       const grid = document.getElementById('store-products-grid');
       const search = (document.getElementById('store-search-input')?.value || '').toLowerCase();
-      const filtered = state.products.filter(p => (state.selectedCategory === 'Todos' || p.category === state.selectedCategory) && (p.name.toLowerCase().includes(search) || p.description.toLowerCase().includes(search)));
+      const filtered = state.products.filter(p => (state.selectedCategory === 'Todos' || p.category === state.selectedCategory) && ((p.name || '').toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search)));
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-3xl card-90s text-center"><p class="font-extrabold text-[#6B21A8]">No hay productos disponibles.</p></div>`;
+        grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-3xl card-90s text-center"><p class="font-extrabold text-[#6B21A8]">No hay productos disponibles en esta categoría.</p></div>`;
         return;
       }
 
@@ -309,13 +307,13 @@
         <div class="bg-white rounded-3xl overflow-hidden card-90s flex flex-col justify-between ${p.available === false ? 'opacity-60' : ''}">
           <div>
             <div class="relative h-44 bg-purple-100 border-b-2 border-[#2E1065]">
-              <img src="${p.image}" onerror="this.src='https://placehold.co/600x400/6B21A8/FFD600?text=199X'" class="w-full h-full object-cover" />
-              <span class="absolute bottom-3 right-3 bg-[#2E1065] text-[#FFD600] px-3 py-1 rounded-xl font-retro font-extrabold text-sm border border-[#FFD600]">$${Number(p.price).toFixed(2)}</span>
+              <img src="${p.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'" class="w-full h-full object-cover" />
+              <span class="absolute bottom-3 right-3 bg-[#2E1065] text-[#FFD600] px-3 py-1 rounded-xl font-retro font-extrabold text-sm border border-[#FFD600]">$${Number(p.price || 0).toFixed(2)}</span>
             </div>
             <div class="p-4">
-              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]">${p.category}</span>
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]">${p.category || 'General'}</span>
               <h3 class="font-extrabold text-base text-[#1E1035] mt-1">${p.name}</h3>
-              <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.description}</p>
+              <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.description || ''}</p>
             </div>
           </div>
           <div class="p-4 pt-0">
@@ -391,11 +389,11 @@
       };
       
       try {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), order);
+        // Enviar pedido a la colección '199x_orders' para que caiga en el panel admin
+        await addDoc(collection(db, '199x_orders'), order);
         
-        // Preparar enlace de WhatsApp con el detalle del pedido
         let itemsText = state.cart.map(i => `- ${i.qty}x ${i.name} ($${(i.price * i.qty).toFixed(2)})`).join('%0A');
-        let waMessage = `Hola! Acabo de hacer el pedido #web en 199X Coffee.%0A%0A*Cliente:* ${encodeURIComponent(customerName)}%0A*Fecha/Hora:* ${date} a las ${time}%0A*Total:* $${total.toFixed(2)}%0A%0A*Productos:*%0A${itemsText}%0A%0AAdjunto mi comprobante de transferencia para verificación.`;
+        let waMessage = `Hola! Acabo de hacer el pedido en 199X Coffee.%0A%0A*Cliente:* ${encodeURIComponent(customerName)}%0A*Fecha/Hora:* ${date} a las ${time}%0A*Total:* $${total.toFixed(2)}%0A%0A*Productos:*%0A${itemsText}%0A%0AAdjunto mi comprobante de transferencia para verificación.`;
         document.getElementById('whatsapp-send-btn').href = `https://wa.me/18494040514?text=${waMessage}`;
 
         state.cart = [];
@@ -403,7 +401,6 @@
         document.getElementById('customer-checkout-form').reset();
         setupDefaultDates();
         
-        // Mostrar modal de WhatsApp
         document.getElementById('whatsapp-modal').classList.remove('hidden');
         document.getElementById('whatsapp-modal').classList.add('flex');
 
