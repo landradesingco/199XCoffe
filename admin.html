@@ -140,7 +140,9 @@
             <section id="section-menu" class="admin-section hidden space-y-6">
                 <div class="bg-gray-800 p-6 rounded-2xl border-2 border-retroYellow">
                     <h2 id="menuFormTitle" class="text-xl font-bold text-retroYellow mb-4">Agregar Nuevo Producto</h2>
-                    <form onsubmit="saveProduct(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    <!-- FORMULARIO CORREGIDO QUE ENVUELVE TODO CORRECTAMENTE -->
+                    <form id="productForm" onsubmit="saveProduct(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <input type="hidden" id="editingProductId">
                         <input type="text" id="prodName" placeholder="Nombre del producto" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                         <select id="prodCategory" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
@@ -151,7 +153,11 @@
                         <input type="number" step="0.01" id="prodPrice" placeholder="Precio ($)" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
                         <input type="file" id="prodImageFile" accept="image/*" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm file:mr-4 file:py-1 file:px-4 file:rounded-lg file:border-0 file:bg-retroFuchsia file:text-white">
                         <textarea id="prodDesc" placeholder="Descripción breve" class="md:col-span-3 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white"></textarea>
-                        <button type="submit" class="bg-retroYellow text-retroPurple font-black py-2 px-6 rounded-xl shadow hover:opacity-90">Guardar Producto</button>
+                        
+                        <div class="md:col-span-1 flex flex-col justify-end">
+                            <button type="submit" id="saveProdBtn" class="w-full bg-retroYellow text-retroPurple font-black py-3 px-6 rounded-xl shadow hover:opacity-90">Guardar Producto</button>
+                            <p id="formStatusMsg" class="text-[11px] text-retroTurquoise font-bold text-center mt-1"></p>
+                        </div>
                     </form>
                 </div>
 
@@ -388,37 +394,28 @@
             });
         }
 
-        // Función para comprimir imágenes automáticamente antes de subir
         function compressImage(file, callback) {
             const reader = new FileReader();
             reader.onload = function (e) {
                 const img = new Image();
                 img.onload = function () {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 400;
-                    const MAX_HEIGHT = 400;
+                    const MAX_WIDTH = 300;
+                    const MAX_HEIGHT = 300;
                     let width = img.width;
                     let height = img.height;
 
                     if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                     } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
                     }
 
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    
-                    // Comprimir a JPEG con calidad 0.7 (muy liviano para Firebase)
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
                     callback(dataUrl);
                 }
                 img.src = e.target.result;
@@ -428,6 +425,9 @@
 
         async function saveProduct(e) {
             e.preventDefault();
+            const statusMsg = document.getElementById('formStatusMsg');
+            statusMsg.innerText = "Procesando...";
+
             const id = document.getElementById('editingProductId').value;
             const name = document.getElementById('prodName').value;
             const category = document.getElementById('prodCategory').value;
@@ -448,21 +448,23 @@
 
         async function commitProductData(id, data) {
             const db = window.db;
+            const statusMsg = document.getElementById('formStatusMsg');
             try {
+                statusMsg.innerText = "Guardando en Firebase...";
                 if(id) {
                     await window.updateDoc(window.doc(db, "199x_products", id), data);
                 } else {
                     await window.addDoc(window.collection(db, "199x_products"), data);
                 }
-                document.getElementById('prodName').value = '';
-                document.getElementById('prodPrice').value = '';
-                document.getElementById('prodDesc').value = '';
-                document.getElementById('prodImageFile').value = '';
+                document.getElementById('productForm').reset();
                 document.getElementById('editingProductId').value = '';
                 document.getElementById('menuFormTitle').innerText = 'Agregar Nuevo Producto';
-                alert('¡Producto guardado con éxito en la web!');
+                statusMsg.innerText = "¡Guardado con éxito!";
+                setTimeout(() => { statusMsg.innerText = ""; }, 3000);
             } catch (err) {
-                alert('Error al guardar: La imagen es muy pesada o hubo un problema de conexión.');
+                console.error(err);
+                statusMsg.innerText = "Error al guardar.";
+                alert('Error al guardar: ' + err.message);
             }
         }
 
