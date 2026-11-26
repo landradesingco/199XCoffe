@@ -453,7 +453,7 @@
 
             // Filtrar Órdenes (Solo se suman a Ventas Totales si el estado es 'Transferencia Aceptada')
             const filteredOrders = globalOrders.filter(o => {
-                if((o.status || 'Pendiente') !== 'Transferencia Aceptada') return false;
+                if((o.status || 'Pendiente') !== 'Entregado') return false;
                 if(!o.date) return true;
                 // Formato esperado de fecha: DD/MM/YYYY o YYYY-MM-DD
                 let orderDate = o.date;
