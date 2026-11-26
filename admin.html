@@ -141,7 +141,6 @@
                 <div class="bg-gray-800 p-6 rounded-2xl border-2 border-retroYellow">
                     <h2 id="menuFormTitle" class="text-xl font-bold text-retroYellow mb-4">Agregar Nuevo Producto</h2>
                     
-                    <!-- FORMULARIO CORREGIDO QUE ENVUELVE TODO CORRECTAMENTE -->
                     <form id="productForm" onsubmit="saveProduct(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <input type="hidden" id="editingProductId">
                         <input type="text" id="prodName" placeholder="Nombre del producto" required class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white">
@@ -159,6 +158,17 @@
                             <p id="formStatusMsg" class="text-[11px] text-retroTurquoise font-bold text-center mt-1"></p>
                         </div>
                     </form>
+                </div>
+
+                <!-- Buscador y Filtro de Productos en el Panel -->
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-800 p-4 rounded-2xl border border-gray-700">
+                    <input type="text" id="adminSearchInput" oninput="renderAdminMenu()" placeholder="🔍 Buscar producto en el menú..." class="w-full md:w-80 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm">
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button onclick="filterAdminCat('Todos')" class="admin-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-retroYellow text-retroPurple">Todos</button>
+                        <button onclick="filterAdminCat('Postres')" class="admin-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-700 text-gray-300">Postres</button>
+                        <button onclick="filterAdminCat('Desayunos')" class="admin-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-700 text-gray-300">Desayunos</button>
+                        <button onclick="filterAdminCat('Bebidas')" class="admin-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-700 text-gray-300">Bebidas</button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="adminMenuGrid"></div>
@@ -232,6 +242,9 @@
     </div>
 
     <script>
+        let globalProducts = [];
+        let currentAdminCat = 'Todos';
+
         function verifyPin(e) {
             e.preventDefault();
             const pin = document.getElementById('pinInput').value;
@@ -274,20 +287,23 @@
             const db = window.db;
             if(!db) return;
 
+            // 1. Pedidos (Web + Manual)
             window.onSnapshot(window.collection(db, "199x_orders"), (snapshot) => {
                 const container = document.getElementById('liveOrdersContainer');
                 container.innerHTML = '';
                 if(snapshot.empty) {
-                    container.innerHTML = '<p class="text-gray-400">No hay pedidos web recibidos aún.</p>';
+                    container.innerHTML = '<p class="text-gray-400">No hay pedidos recibidos aún.</p>';
                     return;
                 }
                 snapshot.forEach(docSnap => {
                     const order = docSnap.data();
                     const id = docSnap.id;
                     const itemsList = order.items ? order.items.map(i => `<li class="text-sm">• ${i.name} x${i.qty} ($${i.price})</li>`).join('') : '';
+                    const phoneClean = (order.customerPhone || order.phone || '').replace(/[^0-9]/g, '');
+                    const currentStatus = order.status || 'Pendiente';
                     
                     const div = document.createElement('div');
-                    div.className = `bg-gray-800 p-5 rounded-2xl border-2 ${order.status === 'Completado' ? 'border-green-500' : 'border-retroYellow'}`;
+                    div.className = `bg-gray-800 p-5 rounded-2xl border-2 ${currentStatus === 'Entregado' ? 'border-green-500' : 'border-retroYellow'}`;
                     div.innerHTML = `
                         <div class="flex justify-between items-start mb-3">
                             <div>
@@ -298,48 +314,36 @@
                             <span class="text-retroTurquoise font-black text-lg">$${order.total}</span>
                         </div>
                         <ul class="mb-4 bg-gray-900 p-3 rounded-xl">${itemsList}</ul>
-                        <div class="mb-3 text-xs bg-purple-950/50 p-2 rounded-lg border border-purple-800">
-                            <span class="font-bold text-retroYellow">Pago:</span> ${order.paymentMethod || 'Transferencia'} <br>
-                            <span class="font-bold text-retroYellow">Estado:</span> <span class="text-pink-400 font-bold">${order.status || 'Pendiente'}</span>
+                        
+                        <div class="mb-3 space-y-2">
+                            <label class="block text-xs font-bold text-retroYellow">Estado del Pedido:</label>
+                            <select onchange="updateOrderStatusWithWhatsApp('${id}', '${encodeURIComponent(order.customerName)}', '${phoneClean}', this.value)" class="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-3 py-2 text-xs font-bold">
+                                <option value="Pendiente" ${currentStatus === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente / Verificando Transferencia</option>
+                                <option value="Transferencia Aceptada" ${currentStatus === 'Transferencia Aceptada' ? 'selected' : ''}>🏦 Transferencia Aceptada</option>
+                                <option value="Pedido en Curso" ${currentStatus === 'Pedido en Curso' ? 'selected' : ''}>🍳 Pedido en Curso (Preparando)</option>
+                                <option value="Pedido en Camino" ${currentStatus === 'Pedido en Camino' ? 'selected' : ''}>🛵 Pedido en Camino / Listo</option>
+                                <option value="Entregado" ${currentStatus === 'Entregado' ? 'selected' : ''}>✅ Pedido Entregado</option>
+                                <option value="Cancelado" ${currentStatus === 'Cancelado' ? 'selected' : ''}>❌ Pedido Cancelado</option>
+                            </select>
                         </div>
-                        <div class="flex gap-2">
-                            <a href="https://wa.me/1${(order.customerPhone || order.phone || '').replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(order.customerName)},%20te%20escribimos%20de%20199X%20Coffee%20sobre%20tu%20pedido..." target="_blank" class="flex-1 bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
-                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+
+                        <div id="wa-btn-container-${id}" class="mt-2">
+                            <a href="https://wa.me/1${phoneClean}?text=Hola%20${encodeURIComponent(order.customerName)},%20tu%20pedido%20en%20199X%20Coffee%20se%20encuentra%20actualmente:%20*${encodeURIComponent(currentStatus)}*" target="_blank" class="w-full inline-block bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
+                                <i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp (${currentStatus})
                             </a>
-                            <button onclick="updateOrderStatus('${id}', '${order.status === 'Completado' ? 'Pendiente' : 'Completado'}')" class="px-3 py-2 rounded-xl text-xs font-bold ${order.status === 'Completado' ? 'bg-gray-700 text-white' : 'bg-retroYellow text-retroPurple'}">
-                                ${order.status === 'Completado' ? 'Completado' : 'Marcar Listo'}
-                            </button>
                         </div>
                     `;
                     container.appendChild(div);
                 });
             });
 
+            // 2. Menú de Productos
             window.onSnapshot(window.collection(db, "199x_products"), (snapshot) => {
-                const grid = document.getElementById('adminMenuGrid');
-                grid.innerHTML = '';
-                snapshot.forEach(docSnap => {
-                    const prod = docSnap.data();
-                    const id = docSnap.id;
-                    const card = document.createElement('div');
-                    card.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 flex flex-col justify-between';
-                    card.innerHTML = `
-                        <div>
-                            <img src="${prod.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" class="w-full h-36 object-cover rounded-xl mb-3">
-                            <span class="text-xs bg-retroFuchsia text-white px-2 py-0.5 rounded font-bold uppercase">${prod.category}</span>
-                            <h3 class="text-lg font-bold text-white mt-1">${prod.name}</h3>
-                            <p class="text-retroTurquoise font-black">$${prod.price}</p>
-                            <p class="text-xs text-gray-400 mt-1">${prod.description || ''}</p>
-                        </div>
-                        <div class="flex gap-2 mt-4 pt-3 border-t border-gray-700">
-                            <button onclick="editProduct('${id}', '${encodeURIComponent(prod.name)}', '${prod.category}', ${prod.price}, '${encodeURIComponent(prod.description || '')}')" class="flex-1 bg-retroTurquoise text-white py-1.5 rounded-lg text-xs font-bold">Editar</button>
-                            <button onclick="deleteProduct('${id}')" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Eliminar</button>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
+                globalProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderAdminMenu();
             });
 
+            // 3. Inventario
             window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
                 const tbody = document.getElementById('inventoryTableBody');
                 tbody.innerHTML = '';
@@ -360,6 +364,7 @@
                 });
             });
 
+            // 4. Contabilidad y Nómina
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
                 const list = document.getElementById('expensesList');
                 list.innerHTML = '';
@@ -392,6 +397,54 @@
                     netEl.className = `text-3xl font-black mt-2 ${net >= 0 ? 'text-retroYellow' : 'text-red-500'}`;
                 });
             });
+        }
+
+        // Renderizar menú con filtros y buscador en el panel
+        window.filterAdminCat = function(cat) {
+            currentAdminCat = cat;
+            document.querySelectorAll('.admin-cat-btn').forEach(b => {
+                b.className = b.textContent.includes(cat) ? 'admin-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-retroYellow text-retroPurple' : 'admin-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-700 text-gray-300';
+            });
+            renderAdminMenu();
+        };
+
+        window.renderAdminMenu = function() {
+            const grid = document.getElementById('adminMenuGrid');
+            const search = (document.getElementById('adminSearchInput')?.value || '').toLowerCase();
+            const filtered = globalProducts.filter(p => (currentAdminCat === 'Todos' || p.category === currentAdminCat) && ((p.name || '').toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search)));
+
+            if(filtered.length === 0) {
+                grid.innerHTML = '<p class="text-gray-400 col-span-full">No se encontraron productos.</p>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(prod => `
+                <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex flex-col justify-between">
+                    <div>
+                        <img src="${prod.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" class="w-full h-36 object-cover rounded-xl mb-3">
+                        <span class="text-xs bg-retroFuchsia text-white px-2 py-0.5 rounded font-bold uppercase">${prod.category}</span>
+                        <h3 class="text-lg font-bold text-white mt-1">${prod.name}</h3>
+                        <p class="text-retroTurquoise font-black">$${prod.price}</p>
+                        <p class="text-xs text-gray-400 mt-1">${prod.description || ''}</p>
+                    </div>
+                    <div class="flex gap-2 mt-4 pt-3 border-t border-gray-700">
+                        <button onclick="editProduct('${prod.id}', '${encodeURIComponent(prod.name)}', '${prod.category}', ${prod.price}, '${encodeURIComponent(prod.description || '')}')" class="flex-1 bg-retroTurquoise text-white py-1.5 rounded-lg text-xs font-bold">Editar</button>
+                        <button onclick="deleteProduct('${prod.id}')" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        async function updateOrderStatusWithWhatsApp(id, custName, phone, newStatus) {
+            await window.updateDoc(window.doc(window.db, "199x_orders", id), { status: newStatus });
+            const container = document.getElementById(`wa-btn-container-${id}`);
+            if(container) {
+                container.innerHTML = `
+                    <a href="https://wa.me/1${phone}?text=Hola%20${custName},%20tu%20pedido%20en%20199X%20Coffee%20se%20encuentra%20actualmente:%20*${encodeURIComponent(newStatus)}*" target="_blank" class="w-full inline-block bg-green-600 text-white text-center py-2 rounded-xl text-xs font-bold hover:opacity-90">
+                        <i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp (${newStatus})
+                    </a>
+                `;
+            }
         }
 
         function compressImage(file, callback) {
@@ -435,8 +488,6 @@
             const description = document.getElementById('prodDesc').value;
             const fileInput = document.getElementById('prodImageFile');
 
-            let imageUrl = 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500';
-
             if(fileInput.files && fileInput.files[0]) {
                 compressImage(fileInput.files[0], async function(compressedUrl) {
                     await commitProductData(id, { name, category, price, description, image: compressedUrl });
@@ -464,7 +515,6 @@
             } catch (err) {
                 console.error(err);
                 statusMsg.innerText = "Error al guardar.";
-                alert('Error al guardar: ' + err.message);
             }
         }
 
@@ -484,10 +534,6 @@
             }
         }
 
-        async function updateOrderStatus(id, status) {
-            await window.updateDoc(window.doc(window.db, "199x_orders", id), { status: status });
-        }
-
         async function saveManualOrder(e) {
             e.preventDefault();
             const customerName = document.getElementById('mClientName').value;
@@ -498,7 +544,7 @@
 
             await window.addDoc(window.collection(window.db, "199x_orders"), {
                 customerName,
-                phone,
+                customerPhone: phone,
                 items: [{ name: details, qty: 1, price: total }],
                 total,
                 channel: type,
