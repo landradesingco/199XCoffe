@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>199X Coffee | Panel Administrativo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #FAF7FF; color: #1E1035; }
+    h1, h2, h3, .font-retro { font-family: 'Space Grotesk', sans-serif; }
+    .bg-memphis {
+      background-color: #FAF7FF;
+      background-image: radial-gradient(#EC489922 2px, transparent 2px), radial-gradient(#06B6D422 2px, #FAF7FF 2px);
+      background-size: 36px 36px;
+      background-position: 0 0, 18px 18px;
+    }
+    .card-90s { border: 2.5px solid #2E1065; box-shadow: 5px 5px 0px #2E1065; }
+    .btn-90s { border: 2.5px solid #2E1065; box-shadow: 3px 3px 0px #2E1065; transition: all 0.1s; }
+    .btn-90s:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #2E1065; }
+  </style>
+</head>
+<body class="bg-memphis min-h-screen flex flex-col">
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4"></div>
+
+  <!-- PANTALLA DE ACCESO CON PIN -->
+  <div id="pin-screen" class="fixed inset-0 bg-[#2E1065] z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full card-90s text-center space-y-4">
+      <div class="w-16 h-16 rounded-2xl bg-[#FFD600] text-[#2E1065] border-2 border-[#2E1065] flex items-center justify-center font-retro font-extrabold text-2xl mx-auto shadow-[4px_4px_0px_#EC4899]">
+        🔒
+      </div>
+      <h2 class="text-2xl font-extrabold text-[#6B21A8]">Área Restringida</h2>
+      <p class="text-xs text-gray-600">Ingresa el PIN de seguridad administrativo (Por defecto: <strong>1990</strong>)</p>
+      <form onsubmit="verifyAdminPin(event)" class="space-y-3">
+        <input type="password" id="admin-pin-input" required maxlength="6" placeholder="PIN de acceso" class="w-full text-center tracking-widest px-4 py-3 rounded-xl border-2 border-[#2E1065] font-retro text-xl font-extrabold bg-purple-50 focus:outline-none" />
+        <button type="submit" class="w-full btn-90s bg-[#06B6D4] text-[#1E1035] font-extrabold py-3 rounded-xl text-sm">Entrar al Panel</button>
+      </form>
+      <button onclick="window.location.href='index.html'" class="text-xs text-purple-700 underline font-bold">← Ir a la Tienda Pública</button>
+    </div>
+  </div>
+
+  <!-- HEADER ADMIN -->
+  <header class="sticky top-0 z-40 bg-[#2E1065] text-white border-b-4 border-[#FFD600] shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-[#06B6D4] text-[#1E1035] border-2 border-[#FFD600] flex items-center justify-center font-retro font-extrabold text-xl">
+          🎛️
+        </div>
+        <div>
+          <span class="font-retro font-extrabold text-xl text-[#FFD600]">199X Coffee Admin</span>
+          <p class="text-xs text-purple-200">Panel de Control & CMS</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="index.html" target="_blank" class="btn-90s bg-[#FFD600] text-[#1E1035] font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1">
+          <span>🌐 Ver Tienda</span>
+        </a>
+        <button onclick="lockAdminSession()" class="btn-90s bg-red-400 text-white font-extrabold px-3 py-2 rounded-xl text-xs">🔒 Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO ADMIN -->
+  <main id="admin-main-container" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+    <!-- KPIS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-[#FFD600] p-4 rounded-2xl card-90s"><p class="text-xs font-extrabold text-[#2E1065]/80">Pedidos Activos</p><p id="kpi-active-orders" class="text-2xl font-retro font-extrabold text-[#2E1065] mt-1">0</p></div>
+      <div class="bg-[#06B6D4] p-4 rounded-2xl card-90s"><p class="text-xs font-extrabold text-[#2E1065]/80">Ventas Totales</p><p id="kpi-total-revenue" class="text-2xl font-retro font-extrabold text-[#2E1065] mt-1">$0.00</p></div>
+      <div class="bg-[#EC4899] text-white p-4 rounded-2xl card-90s"><p class="text-xs font-extrabold text-pink-100">Stock Bajo</p><p id="kpi-low-stock" class="text-2xl font-retro font-extrabold mt-1">0</p></div>
+      <div class="bg-[#6B21A8] text-white p-4 rounded-2xl card-90s"><p class="text-xs font-extrabold text-purple-200">Balance Neto</p><p id="kpi-net-balance" class="text-2xl font-retro font-extrabold text-[#FFD600] mt-1">$0.00</p></div>
+    </div>
+
+    <!-- PESTAÑAS ADMIN -->
+    <div class="flex flex-wrap gap-2 mb-6 bg-white p-2 rounded-2xl card-90s">
+      <button onclick="switchAdminTab('orders')" data-tab="orders" class="admin-tab-btn btn-90s bg-[#6B21A8] text-white font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm">🛎️ Pedidos & WhatsApp</button>
+      <button onclick="switchAdminTab('menu')" data-tab="menu" class="admin-tab-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm">🧁 Menú & Fotos</button>
+      <button onclick="switchAdminTab('inventory')" data-tab="inventory" class="admin-tab-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm">📦 Inventario</button>
+      <button onclick="switchAdminTab('accounting')" data-tab="accounting" class="admin-tab-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm">💰 Contabilidad</button>
+      <button onclick="switchAdminTab('payroll')" data-tab="payroll" class="admin-tab-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm">👥 Nómina</button>
+    </div>
+
+    <!-- TAB 1: PEDIDOS -->
+    <section id="admin-tab-orders" class="admin-tab-content grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-8 space-y-4">
+        <div class="bg-white p-4 rounded-2xl card-90s flex justify-between items-center gap-2">
+          <h2 class="text-lg font-extrabold text-[#6B21A8]">📋 Cola de Pedidos en Vivo</h2>
+          <select id="admin-order-filter" onchange="renderAdminOrders()" class="px-3 py-1.5 rounded-xl border-2 border-[#2E1065] text-xs font-bold">
+            <option value="Todos">Todos</option>
+            <option value="Web">🌐 Web</option>
+            <option value="WhatsApp">💬 WhatsApp / Manual</option>
+          </select>
+        </div>
+        <div id="admin-orders-list" class="space-y-4"></div>
+      </div>
+      <div class="lg:col-span-4 bg-white p-5 rounded-3xl card-90s h-fit">
+        <h3 class="font-extrabold text-base text-[#6B21A8] pb-3 mb-4 border-b-2 border-[#2E1065]">💬 Registrar Pedido Manual (WhatsApp)</h3>
+        <form id="manual-order-form" onsubmit="submitManualOrder(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Canal</label>
+            <select id="man-channel" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs font-bold bg-emerald-50">
+              <option value="WhatsApp">💬 WhatsApp</option>
+              <option value="Mostrador">🏪 Mostrador</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Cliente *</label><input type="text" id="man-name" required placeholder="Nombre" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs" /></div>
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Teléfono</label><input type="text" id="man-phone" placeholder="809-000" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs" /></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Fecha *</label><input type="date" id="man-date" required class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs font-bold" /></div>
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Hora *</label><input type="time" id="man-time" required value="10:30" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs font-bold" /></div>
+          </div>
+          <div class="bg-purple-50 p-3 rounded-2xl border-2 border-[#2E1065]">
+            <label class="block text-xs font-extrabold text-[#6B21A8] mb-1">Agregar Producto</label>
+            <div class="flex gap-1">
+              <select id="man-product-select" class="flex-1 px-2 py-1.5 rounded-xl border-2 border-[#2E1065] text-xs bg-white"></select>
+              <button type="button" onclick="addManualItem()" class="btn-90s bg-[#FFD600] text-[#1E1035] font-extrabold px-3 py-1.5 rounded-xl text-xs">+</button>
+            </div>
+            <div id="man-items-list" class="mt-2 space-y-1 max-h-32 overflow-y-auto"></div>
+            <div class="flex justify-between pt-2 mt-2 border-t border-purple-200 font-extrabold text-sm text-[#6B21A8]"><span>Total:</span><span id="man-total-display">$0.00</span></div>
+          </div>
+          <button type="submit" class="w-full btn-90s bg-[#06B6D4] text-[#1E1035] font-extrabold py-3 rounded-2xl text-sm">✅ Registrar Pedido</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 2: MENÚ & FOTOS -->
+    <section id="admin-tab-menu" class="admin-tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-5 rounded-3xl card-90s h-fit">
+        <div class="flex justify-between items-center pb-3 mb-4 border-b-2 border-[#2E1065]">
+          <h2 id="menu-form-title" class="text-lg font-extrabold text-[#6B21A8]">➕ Nuevo Producto</h2>
+          <button type="button" id="cancel-edit-btn" onclick="resetProductForm()" class="hidden text-xs font-extrabold text-[#EC4899] underline">Cancelar</button>
+        </div>
+        <form id="product-cms-form" onsubmit="saveProductCMS(event)" class="space-y-3">
+          <input type="hidden" id="prod-id" />
+          <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Nombre *</label><input type="text" id="prod-name" required placeholder="Ej. Tres Leches" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm" /></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Categoría *</label>
+              <select id="prod-category" required class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold bg-[#FFD600]/20">
+                <option value="Postres">🍰 Postres</option>
+                <option value="Desayunos">🥞 Desayunos</option>
+                <option value="Bebidas">🥤 Bebidas</option>
+              </select>
+            </div>
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Precio ($) *</label><input type="number" step="0.01" id="prod-price" required placeholder="4.50" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold" /></div>
+          </div>
+          <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Descripción *</label><textarea id="prod-desc" rows="2" required class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs"></textarea></div>
+          <div class="bg-purple-50 p-3 rounded-2xl border-2 border-[#2E1065] space-y-2">
+            <label class="block text-xs font-extrabold text-[#6B21A8]">📸 Foto (Subir o URL)</label>
+            <input type="file" id="prod-image-file" accept="image/*" onchange="handleProductImageUpload(event)" class="w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded-xl file:border file:bg-[#FFD600] file:font-bold" />
+            <input type="text" id="prod-image-url" placeholder="O URL https://..." class="w-full px-3 py-1.5 rounded-xl border border-purple-300 text-xs bg-white" />
+            <img id="prod-image-preview" src="https://placehold.co/100x100/6B21A8/FFD600?text=199X" class="w-14 h-14 rounded-xl object-cover border border-[#2E1065] mt-1" />
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <input type="checkbox" id="prod-available" checked class="w-4 h-4 accent-[#6B21A8]" />
+            <label for="prod-available" class="text-xs font-extrabold text-[#2E1065]">Disponible en Tienda Web</label>
+          </div>
+          <button type="submit" class="w-full btn-90s bg-[#EC4899] text-white font-extrabold py-3 rounded-2xl text-sm">💾 Guardar en Menú</button>
+        </form>
+      </div>
+      <div class="lg:col-span-7 space-y-4">
+        <div class="bg-white p-4 rounded-2xl card-90s flex justify-between items-center">
+          <h2 class="text-lg font-extrabold text-[#6B21A8]">🧁 Catálogo Actual (<span id="admin-products-count">0</span>)</h2>
+        </div>
+        <div id="admin-products-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: INVENTARIO -->
+    <section id="admin-tab-inventory" class="admin-tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-4 bg-white p-5 rounded-3xl card-90s h-fit">
+        <h2 class="text-lg font-extrabold text-[#6B21A8] pb-3 mb-4 border-b-2 border-[#2E1065]">📦 Nuevo Insumo</h2>
+        <form id="inventory-form" onsubmit="addInventoryItem(event)" class="space-y-3">
+          <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Nombre *</label><input type="text" id="inv-name" required placeholder="Ej. Café en Grano" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm" /></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Stock *</label><input type="number" step="0.1" id="inv-stock" required value="10" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold" /></div>
+            <div>
+              <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Unidad *</label>
+              <select id="inv-unit" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold">
+                <option value="kg">kg</option><option value="litros">litros</option><option value="unidades">unidades</option>
+              </select>
+            </div>
+          </div>
+          <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Stock Mínimo Alerta *</label><input type="number" step="0.1" id="inv-min" required value="3" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold bg-yellow-50" /></div>
+          <button type="submit" class="w-full btn-90s bg-[#FFD600] text-[#1E1035] font-extrabold py-3 rounded-2xl text-sm">+ Agregar Insumo</button>
+        </form>
+      </div>
+      <div class="lg:col-span-8 bg-white p-5 rounded-3xl card-90s">
+        <h2 class="text-lg font-extrabold text-[#6B21A8] mb-4">📊 Control de Existencias</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead><tr class="border-b-2 border-[#2E1065] text-xs font-extrabold text-[#6B21A8]"><th class="py-2 px-3">Insumo</th><th class="py-2 px-3">Stock</th><th class="py-2 px-3">Mínimo</th><th class="py-2 px-3 text-right">Ajuste</th></tr></thead>
+            <tbody id="inventory-table-body" class="divide-y divide-purple-100 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CONTABILIDAD -->
+    <section id="admin-tab-accounting" class="admin-tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-3xl card-90s border-l-8 border-l-[#06B6D4]"><p class="text-xs font-extrabold text-gray-500">Ingresos Totales</p><p id="acc-income-total" class="text-2xl font-retro font-extrabold text-[#0891B2] mt-1">$0.00</p></div>
+        <div class="bg-white p-5 rounded-3xl card-90s border-l-8 border-l-[#EC4899]"><p class="text-xs font-extrabold text-gray-500">Egresos Totales</p><p id="acc-expense-total" class="text-2xl font-retro font-extrabold text-[#DB2777] mt-1">$0.00</p></div>
+        <div class="bg-white p-5 rounded-3xl card-90s border-l-8 border-l-[#FFD600]"><p class="text-xs font-extrabold text-gray-500">Balance Neto</p><p id="acc-net-total" class="text-2xl font-retro font-extrabold text-[#6B21A8] mt-1">$0.00</p></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-4 bg-white p-5 rounded-3xl card-90s h-fit">
+          <h3 class="text-lg font-extrabold text-[#6B21A8] pb-3 mb-4 border-b-2 border-[#2E1065]">💸 Registrar Egreso / Gasto</h3>
+          <form id="expense-form" onsubmit="addExpenseRecord(event)" class="space-y-3">
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Concepto *</label><input type="text" id="exp-concept" required placeholder="Ej. Compra insumos" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm" /></div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Categoría</label>
+                <select id="exp-category" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs font-bold">
+                  <option value="Insumos">Insumos</option><option value="Servicios">Servicios</option><option value="Nómina">Nómina</option><option value="Otros">Otros</option>
+                </select>
+              </div>
+              <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Monto ($) *</label><input type="number" step="0.01" id="exp-amount" required placeholder="50.00" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold" /></div>
+            </div>
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Fecha *</label><input type="date" id="exp-date" required class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs font-bold" /></div>
+            <button type="submit" class="w-full btn-90s bg-[#EC4899] text-white font-extrabold py-3 rounded-2xl text-sm">+ Registrar Gasto</button>
+          </form>
+        </div>
+        <div class="lg:col-span-8 bg-white p-5 rounded-3xl card-90s">
+          <h3 class="text-lg font-extrabold text-[#6B21A8] mb-4">📒 Libro Diario</h3>
+          <div class="overflow-x-auto max-h-80 overflow-y-auto">
+            <table class="w-full text-left border-collapse">
+              <thead><tr class="border-b-2 border-[#2E1065] text-xs font-extrabold text-[#6B21A8]"><th class="py-2 px-3">Fecha</th><th class="py-2 px-3">Concepto</th><th class="py-2 px-3">Tipo</th><th class="py-2 px-3 text-right">Monto</th></tr></thead>
+              <tbody id="accounting-table-body" class="divide-y divide-purple-100 text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: NÓMINA -->
+    <section id="admin-tab-payroll" class="admin-tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-4 bg-white p-5 rounded-3xl card-90s h-fit">
+        <h2 class="text-lg font-extrabold text-[#6B21A8] pb-3 mb-4 border-b-2 border-[#2E1065]">👥 Nuevo Colaborador</h2>
+        <form id="employee-form" onsubmit="addEmployee(event)" class="space-y-3">
+          <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Nombre *</label><input type="text" id="emp-name" required placeholder="Ej. Mateo Vargas" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm" /></div>
+          <div>
+            <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Puesto *</label>
+            <select id="emp-role" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold">
+              <option value="Barista">Barista</option><option value="Repostero">Repostero</option><option value="Caja">Caja</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Tarifa/Día ($) *</label><input type="number" id="emp-rate" required value="35" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold" /></div>
+            <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Días *</label><input type="number" id="emp-days" required value="15" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold" /></div>
+          </div>
+          <div><label class="block text-xs font-extrabold text-[#2E1065] mb-1">Bono ($)</label><input type="number" id="emp-bonus" value="0" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-bold" /></div>
+          <button type="submit" class="w-full btn-90s bg-[#06B6D4] text-[#1E1035] font-extrabold py-3 rounded-2xl text-sm">+ Agregar a Nómina</button>
+        </form>
+      </div>
+      <div class="lg:col-span-8 bg-white p-5 rounded-3xl card-90s">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-extrabold text-[#6B21A8]">💳 Planilla</h2>
+          <span class="bg-[#FFD600] px-3 py-1 rounded-xl border border-[#2E1065] text-xs font-extrabold">Total: <span id="payroll-total-display">$0.00</span></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead><tr class="border-b-2 border-[#2E1065] text-xs font-extrabold text-[#6B21A8]"><th class="py-2 px-3">Colaborador</th><th class="py-2 px-3">Cálculo</th><th class="py-2 px-3">Neto</th><th class="py-2 px-3 text-right">Pago</th></tr></thead>
+            <tbody id="payroll-table-body" class="divide-y divide-purple-100 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- SCRIPT ADMIN FIREBASE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD2vlwm3IwCOwKb2n9vjfj1g6K1X7hzAxM",
+      authDomain: "x-coffee-eb14a.firebaseapp.com",
+      projectId: "x-coffee-eb14a",
+      storageBucket: "x-coffee-eb14a.firebasestorage.app",
+      messagingSenderId: "922785951408",
+      appId: "1:922785951408:web:53380553aaa9f1b8391575"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = "199x-coffee-app";
+
+    const state = { products: [], orders: [], inventory: [], expenses: [], employees: [], manualItems: [] };
+
+    const INITIAL_PRODUCTS = [
+      { id: 'p1', name: 'Tres Leches', category: 'Postres', price: 4.50, description: 'Bizcocho bañado en tres leches.', image: 'https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p2', name: 'Flan de Caramelo', category: 'Postres', price: 3.75, description: 'Flan cremoso de vainilla.', image: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p3', name: 'Beso de Ángel', category: 'Postres', price: 4.75, description: 'Flan y bizcocho con frutas.', image: 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p4', name: 'Gelatina Mosaico', category: 'Postres', price: 2.75, description: 'Cubos de gelatina en crema.', image: 'https://images.unsplash.com/photo-1541783245831-57d6fb0926d3?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p5', name: 'Mini Donas (6 uds)', category: 'Postres', price: 4.25, description: 'Mini donas glaseadas.', image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p6', name: 'Mini Pancakes con Huevos y Tocino', category: 'Desayunos', price: 7.50, description: 'Pancakes, huevos y tocino.', image: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p7', name: 'Mini Pancakes con Frutas', category: 'Desayunos', price: 6.75, description: 'Pancakes con fresas y guineo.', image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p8', name: 'Croissant de Queso Crema', category: 'Desayunos', price: 3.95, description: 'Relleno de queso crema.', image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p9', name: 'Café Latte', category: 'Bebidas', price: 3.75, description: 'Espresso y leche vaporizada.', image: 'https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=600&q=80', available: true },
+      { id: 'p10', name: 'Frappe Mocha', category: 'Bebidas', price: 4.85, description: 'Bebida helada de café.', image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=600&q=80', available: true }
+    ];
+
+    const INITIAL_INVENTORIES = [
+      { id: 'i1', name: 'Café Grano', stock: 10, unit: 'kg', min: 3 },
+      { id: 'i2', name: 'Leche', stock: 15, unit: 'litros', min: 5 }
+    ];
+
+    window.verifyAdminPin = function(e) {
+      e.preventDefault();
+      const pin = document.getElementById('admin-pin-input').value;
+      if (pin === '1990') {
+        document.getElementById('pin-screen').classList.add('hidden');
+        document.getElementById('admin-main-container').classList.remove('hidden');
+        initAdminSession();
+      } else {
+        alert('PIN incorrecto (Usa 1990)');
+      }
+    };
+
+    window.lockAdminSession = function() {
+      document.getElementById('pin-screen').classList.remove('hidden');
+      document.getElementById('admin-main-container').classList.add('hidden');
+      document.getElementById('admin-pin-input').value = '';
+    };
+
+    async function initAdminSession() {
+      const today = new Date().toISOString().split('T')[0];
+      const md = document.getElementById('man-date'); if(md) md.value = today;
+      const ed = document.getElementById('exp-date'); if(ed) ed.value = today;
+
+      await signInAnonymously(auth);
+
+      // Sembrar si está vacío
+      const snapP = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'products'));
+      if (snapP.empty) {
+        for (let p of INITIAL_PRODUCTS) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', p.id), p);
+      }
+      const snapI = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory'));
+      if (snapI.empty) {
+        for (let i of INITIAL_INVENTORIES) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory', i.id), i);
+      }
+
+      // Listeners
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), s => { state.products = s.docs.map(d => ({id: d.id, ...d.data()})); renderAdminProducts(); });
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), s => { state.orders = s.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b)=>b.createdAt-a.createdAt); renderAdminOrders(); updateKPIs(); });
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'inventory'), s => { state.inventory = s.docs.map(d => ({id: d.id, ...d.data()})); renderInventory(); updateKPIs(); });
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'expenses'), s => { state.expenses = s.docs.map(d => ({id: d.id, ...d.data()})); renderAccounting(); updateKPIs(); });
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'employees'), s => { state.employees = s.docs.map(d => ({id: d.id, ...d.data()})); renderPayroll(); });
+    }
+
+    window.switchAdminTab = function(tab) {
+      document.querySelectorAll('.admin-tab-content').forEach(e => e.classList.add('hidden'));
+      document.getElementById(`admin-tab-${tab}`).classList.remove('hidden');
+      document.querySelectorAll('.admin-tab-btn').forEach(b => {
+        b.className = b.dataset.tab === tab ? 'admin-tab-btn btn-90s bg-[#6B21A8] text-white font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm' : 'admin-tab-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm';
+      });
+    };
+
+    // PEDIDOS & MANUAL
+    window.addManualItem = function() {
+      const sel = document.getElementById('man-product-select').value;
+      const p = state.products.find(x => x.id === sel);
+      if(!p) return;
+      const ex = state.manualItems.find(x => x.id === sel);
+      if(ex) ex.qty++; else state.manualItems.push({id: p.id, name: p.name, price: Number(p.price), qty: 1});
+      renderManualItems();
+    };
+    function renderManualItems() {
+      const c = document.getElementById('man-items-list');
+      const tot = state.manualItems.reduce((s, i) => s + i.price * i.qty, 0);
+      document.getElementById('man-total-display').textContent = `$${tot.toFixed(2)}`;
+      c.innerHTML = state.manualItems.map((i, idx) => `<div class="flex justify-between bg-white px-2 py-1 rounded text-xs"><span>${i.qty}x ${i.name}</span><button type="button" onclick="state.manualItems.splice(${idx},1);renderManualItems();" class="text-red-600 font-bold">✕</button></div>`).join('');
+    }
+
+    window.submitManualOrder = async function(e) {
+      e.preventDefault();
+      if(state.manualItems.length === 0) { alert('Agrega productos'); return; }
+      const total = state.manualItems.reduce((s, i) => s + i.price * i.qty, 0);
+      const ord = {
+        channel: document.getElementById('man-channel').value,
+        customerName: document.getElementById('man-name').value.trim(),
+        customerPhone: document.getElementById('man-phone').value.trim() || 'Mostrador',
+        date: document.getElementById('man-date').value,
+        time: document.getElementById('man-time').value,
+        paymentMethod: 'Efectivo',
+        status: 'Pendiente',
+        items: state.manualItems,
+        total: Number(total.toFixed(2)),
+        createdAt: Date.now()
+      };
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), ord);
+      state.manualItems = []; renderManualItems();
+      document.getElementById('manual-order-form').reset();
+      showToast('✅ Pedido manual registrado');
+    };
+
+    window.updateOrderStatus = async function(id, st) {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', id), { status: st });
+    };
+
+    window.renderAdminOrders = function() {
+      const c = document.getElementById('admin-orders-list');
+      const filt = document.getElementById('admin-order-filter').value;
+      const filtered = state.orders.filter(o => filt === 'Todos' || o.channel === filt);
+      if(filtered.length === 0) { c.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center">No hay pedidos.</div>`; return; }
+      c.innerHTML = filtered.map(o => `
+        <div class="bg-white p-4 rounded-2xl card-90s space-y-2">
+          <div class="flex justify-between items-center pb-2 border-b">
+            <div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#FFD600] text-[#1E1035]">${o.channel}</span> <strong class="text-sm">${o.customerName}</strong></div>
+            <span class="text-sm font-retro font-extrabold text-[#EC4899]">$${o.total.toFixed(2)}</span>
+          </div>
+          <div class="text-xs space-y-1">${o.items.map(i=>`<div>${i.qty}x ${i.name}</div>`).join('')}</div>
+          <div class="flex justify-between items-center pt-2 border-t text-xs">
+            <span>Estado: <strong>${o.status}</strong></span>
+            <div class="space-x-1">
+              <button onclick="updateOrderStatus('${o.id}', 'En preparación')" class="bg-[#06B6D4] px-2 py-1 rounded font-bold text-[10px]">Preparar</button>
+              <button onclick="updateOrderStatus('${o.id}', 'Listo')" class="bg-emerald-300 px-2 py-1 rounded font-bold text-[10px]">Listo</button>
+              <button onclick="updateOrderStatus('${o.id}', 'Entregado')" class="bg-purple-300 px-2 py-1 rounded font-bold text-[10px]">Entregado</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    // CMS MENÚ
+    window.handleProductImageUpload = function(e) {
+      const file = e.target.files[0]; if(!file) return;
+      const r = new FileReader();
+      r.onload = function(evt) {
+        document.getElementById('prod-image-url').value = evt.target.result;
+        document.getElementById('prod-image-preview').src = evt.target.result;
+      };
+      r.readAsDataURL(file);
+    };
+
+    window.saveProductCMS = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('prod-id').value;
+      const data = {
+        name: document.getElementById('prod-name').value.trim(),
+        category: document.getElementById('prod-category').value,
+        price: parseFloat(document.getElementById('prod-price').value),
+        description: document.getElementById('prod-desc').value.trim(),
+        image: document.getElementById('prod-image-url').value.trim() || 'https://placehold.co/600x400',
+        available: document.getElementById('prod-available').checked
+      };
+      if(id) {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', id), data);
+      } else {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'products'), data);
+      }
+      resetProductForm();
+      showToast('💾 Producto guardado');
+    };
+
+    window.editProduct = function(id) {
+      const p = state.products.find(x => x.id === id); if(!p) return;
+      document.getElementById('prod-id').value = p.id;
+      document.getElementById('prod-name').value = p.name;
+      document.getElementById('prod-category').value = p.category;
+      document.getElementById('prod-price').value = p.price;
+      document.getElementById('prod-desc').value = p.description;
+      document.getElementById('prod-image-url').value = p.image;
+      document.getElementById('prod-image-preview').src = p.image;
+      document.getElementById('prod-available').checked = p.available !== false;
+      document.getElementById('menu-form-title').textContent = '✏️ Editar Producto';
+      document.getElementById('cancel-edit-btn').classList.remove('hidden');
+    };
+
+    window.resetProductForm = function() {
+      document.getElementById('product-cms-form').reset();
+      document.getElementById('prod-id').value = '';
+      document.getElementById('menu-form-title').textContent = '➕ Nuevo Producto';
+      document.getElementById('cancel-edit-btn').classList.add('hidden');
+    };
+
+    window.deleteProduct = async function(id) {
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', id));
+    };
+
+    window.renderAdminProducts = function() {
+      document.getElementById('admin-products-count').textContent = state.products.length;
+      document.getElementById('man-product-select').innerHTML = state.products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
+      document.getElementById('admin-products-list').innerHTML = state.products.map(p => `
+        <div class="bg-white p-3 rounded-xl card-90s flex items-center gap-3">
+          <img src="${p.image}" class="w-12 h-12 rounded-lg object-cover border" />
+          <div class="flex-1 min-w-0"><p class="font-bold text-xs truncate">${p.name}</p><p class="text-xs text-[#EC4899] font-extrabold">$${p.price.toFixed(2)}</p></div>
+          <div class="space-x-1"><button onclick="editProduct('${p.id}')" class="bg-[#FFD600] px-2 py-1 rounded text-[10px] font-bold">Editar</button><button onclick="deleteProduct('${p.id}')" class="bg-red-200 px-2 py-1 rounded text-[10px] font-bold">✕</button></div>
+        </div>
+      `).join('');
+    };
+
+    // INVENTARIO
+    window.addInventoryItem = async function(e) {
+      e.preventDefault();
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory'), {
+        name: document.getElementById('inv-name').value, stock: parseFloat(document.getElementById('inv-stock').value), unit: document.getElementById('inv-unit').value, min: parseFloat(document.getElementById('inv-min').value)
+      });
+      document.getElementById('inventory-form').reset();
+    };
+    window.adjustStock = async function(id, delta) {
+      const it = state.inventory.find(x => x.id === id); if(!it) return;
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory', id), { stock: Math.max(0, it.stock + delta) });
+    };
+    function renderInventory() {
+      document.getElementById('inventory-table-body').innerHTML = state.inventory.map(i => `
+        <tr><td class="py-2 px-3 font-bold">${i.name}</td><td class="py-2 px-3 font-retro">${i.stock} ${i.unit}</td><td class="py-2 px-3">${i.min}</td><td class="py-2 px-3 text-right"><button onclick="adjustStock('${i.id}', -1)" class="px-2 border bg-white">-</button> <button onclick="adjustStock('${i.id}', 1)" class="px-2 border bg-[#FFD600]">+</button></td></tr>
+      `).join('');
+    }
+
+    // CONTABILIDAD
+    window.addExpenseRecord = async function(e) {
+      e.preventDefault();
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'expenses'), {
+        concept: document.getElementById('exp-concept').value, category: document.getElementById('exp-category').value, amount: parseFloat(document.getElementById('exp-amount').value), date: document.getElementById('exp-date').value
+      });
+      document.getElementById('expense-form').reset();
+    };
+    function renderAccounting() {
+      const validOrders = state.orders.filter(o => o.status !== 'Cancelado');
+      const totalIncome = validOrders.reduce((s, o) => s + o.total, 0);
+      const totalExpenses = state.expenses.reduce((s, e) => s + e.amount, 0);
+      document.getElementById('acc-income-total').textContent = `$${totalIncome.toFixed(2)}`;
+      document.getElementById('acc-expense-total').textContent = `$${totalExpenses.toFixed(2)}`;
+      document.getElementById('acc-net-total').textContent = `$${(totalIncome - totalExpenses).toFixed(2)}`;
+
+      const movs = [...validOrders.map(o => ({ date: o.date, concept: `Venta (${o.channel}): ${o.customerName}`, type: 'Ingreso', amount: o.total })), ...state.expenses.map(e => ({ date: e.date, concept: e.concept, type: 'Egreso', amount: e.amount }))].sort((a,b)=>b.date.localeCompare(a.date));
+
+      document.getElementById('accounting-table-body').innerHTML = movs.map(m => `
+        <tr><td class="py-2 px-3 text-xs">${m.date}</td><td class="py-2 px-3 font-bold">${m.concept}</td><td class="py-2 px-3"><span class="px-2 rounded text-[10px] ${m.type==='Ingreso'?'bg-cyan-100 text-cyan-800':'bg-pink-100 text-pink-800'}">${m.type}</span></td><td class="py-2 px-3 text-right font-bold ${m.type==='Ingreso'?'text-cyan-700':'text-pink-700'}">${m.type==='Ingreso':'+':'-'}$${m.amount.toFixed(2)}</td></tr>
+      `).join('');
+    }
+
+    // NÓMINA
+    window.addEmployee = async function(e) {
+      e.preventDefault();
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'employees'), {
+        name: document.getElementById('emp-name').value, role: document.getElementById('emp-role').value, rate: parseFloat(document.getElementById('emp-rate').value), days: parseInt(document.getElementById('emp-days').value), bonus: parseFloat(document.getElementById('emp-bonus').value)
+      });
+      document.getElementById('employee-form').reset();
+    };
+    window.payEmployee = async function(id) {
+      const emp = state.employees.find(x => x.id === id); if(!emp) return;
+      const net = (emp.rate * emp.days) + emp.bonus;
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'expenses'), {
+        concept: `Nómina: ${emp.name}`, category: 'Nómina', amount: net, date: new Date().toISOString().split('T')[0]
+      });
+      showToast(`💸 Pago de $${net.toFixed(2)} registrado`);
+    };
+    function renderPayroll() {
+      let tot = 0;
+      document.getElementById('payroll-table-body').innerHTML = state.employees.map(e => {
+        const net = (e.rate * e.days) + e.bonus; tot += net;
+        return `<tr><td class="py-2 px-3"><strong>${e.name}</strong><br/><span class="text-xs text-purple-700">${e.role}</span></td><td class="py-2 px-3 text-xs">$${e.rate}×${e.days}d +$${e.bonus}</td><td class="py-2 px-3 font-bold">$${net.toFixed(2)}</td><td class="py-2 px-3 text-right"><button onclick="payEmployee('${e.id}')" class="bg-[#FFD600] px-2 py-1 rounded text-xs font-bold">Pagar</button></td></tr>`;
+      }).join('');
+      document.getElementById('payroll-total-display').textContent = `$${tot.toFixed(2)}`;
+    }
+
+    function updateKPIs() {
+      const active = state.orders.filter(o => ['Pendiente', 'En preparación', 'Listo'].includes(o.status)).length;
+      const rev = state.orders.filter(o => o.status !== 'Cancelado').reduce((s,o)=>s+o.total,0);
+      const exp = state.expenses.reduce((s,e)=>s+e.amount,0);
+      const low = state.inventory.filter(i => i.stock <= i.min).length;
+      document.getElementById('kpi-active-orders').textContent = active;
+      document.getElementById('kpi-total-revenue').textContent = `$${rev.toFixed(2)}`;
+      document.getElementById('kpi-low-stock').textContent = low;
+      document.getElementById('kpi-net-balance').textContent = `$${(rev - exp).toFixed(2)}`;
+    }
+
+    function showToast(msg) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'bg-[#FFD600] text-[#1E1035] px-4 py-3 rounded-xl border-2 border-[#2E1065] shadow-[4px_4px_0px_#2E1065] font-extrabold text-xs';
+      t.textContent = msg; c.appendChild(t); setTimeout(() => t.remove(), 3000);
+    }
+  </script>
+</body>
+</html>
