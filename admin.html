@@ -655,31 +655,37 @@
         }
 
         async function saveProduct(e) {
-            e.preventDefault();
-            const statusMsg = document.getElementById('formStatusMsg');
-            if(statusMsg) statusMsg.innerText = "Procesando...";
+    e.preventDefault();
+    const statusMsg = document.getElementById('formStatusMsg');
+    if(statusMsg) statusMsg.innerText = "Procesando...";
 
-            const id = document.getElementById('editingProductId').value;
-            const name = document.getElementById('prodName').value;
-            const category = document.getElementById('prodCategory').value;
-            const price = parseFloat(document.getElementById('prodPrice').value);
-            const description = document.getElementById('prodDesc').value;
-            const sizes = document.getElementById('prodSizes').value.trim();
-            const flavors = document.getElementById('prodFlavors').value.trim();
-            const fileInput = document.getElementById('prodImageFile');
+    const id = document.getElementById('editingProductId').value;
+    const name = document.getElementById('prodName').value;
+    const category = document.getElementById('prodCategory').value;
+    const price = parseFloat(document.getElementById('prodPrice').value);
+    const description = document.getElementById('prodDesc').value;
+    const sizes = document.getElementById('prodSizes').value.trim();
+    const flavors = document.getElementById('prodFlavors').value.trim();
+    
+    // 👈 AÑADE ESTAS TRES LÍNEAS NUEVAS:
+    const sugar = document.getElementById('prodSugar').value.trim();
+    const milk = document.getElementById('prodMilk').value.trim();
+    const cream = document.getElementById('prodCream').value.trim();
+    
+    const fileInput = document.getElementById('prodImageFile');
 
-            const productData = { name, category, price, description, sizes, flavors };
+    // 👈 INCLúYELOS EN EL OBJETO:
+    const productData = { name, category, price, description, sizes, flavors, sugar, milk, cream };
 
-            if(fileInput.files && fileInput.files[0]) {
-                compressImage(fileInput.files[0], async function(compressedUrl) {
-                    productData.image = compressedUrl;
-                    await commitProductData(id, productData);
-                });
-            } else {
-                await commitProductData(id, productData);
-            }
-        }
-
+    if(fileInput.files && fileInput.files[0]) {
+        compressImage(fileInput.files[0], async function(compressedUrl) {
+            productData.image = compressedUrl;
+            await commitProductData(id, productData);
+        });
+    } else {
+        await commitProductData(id, productData);
+    }
+}
         async function commitProductData(id, data) {
             const db = window.db;
             const statusMsg = document.getElementById('formStatusMsg');
@@ -701,17 +707,24 @@
             }
         }
 
-        function editProduct(id, name, category, price, description, sizes, flavors) {
-            document.getElementById('editingProductId').value = id;
-            document.getElementById('prodName').value = decodeURIComponent(name);
-            document.getElementById('prodCategory').value = category;
-            document.getElementById('prodPrice').value = price;
-            document.getElementById('prodDesc').value = decodeURIComponent(description || '');
-            document.getElementById('prodSizes').value = decodeURIComponent(sizes || '');
-            document.getElementById('prodFlavors').value = decodeURIComponent(flavors || '');
-            document.getElementById('menuFormTitle').innerText = 'Editando Producto';
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
+        // 👈 Añade los parámetros sugar, milk, cream al final:
+function editProduct(id, name, category, price, description, sizes, flavors, sugar, milk, cream) {
+    document.getElementById('editingProductId').value = id;
+    document.getElementById('prodName').value = decodeURIComponent(name);
+    document.getElementById('prodCategory').value = category;
+    document.getElementById('prodPrice').value = price;
+    document.getElementById('prodDesc').value = decodeURIComponent(description || '');
+    document.getElementById('prodSizes').value = decodeURIComponent(sizes || '');
+    document.getElementById('prodFlavors').value = decodeURIComponent(flavors || '');
+    
+    // 👈 AÑADE ESTAS TRES LÍNEAS PARA QUE SE LLENEN AL EDITAR:
+    document.getElementById('prodSugar').value = decodeURIComponent(sugar || '');
+    document.getElementById('prodMilk').value = decodeURIComponent(milk || '');
+    document.getElementById('prodCream').value = decodeURIComponent(cream || '');
+
+    document.getElementById('menuFormTitle').innerText = 'Editando Producto';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
 
         async function deleteProduct(id) {
             if(confirm('¿Seguro que deseas eliminar este producto?')) {
