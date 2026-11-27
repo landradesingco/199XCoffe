@@ -27,18 +27,21 @@
   <!-- TOAST CONTAINER -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4"></div>
 
-  <!-- MODAL DETALLE DE PRODUCTO (ZOOM + DESCRIPCIÓN COMPLETA) -->
+  <!-- MODAL DETALLE DE PRODUCTO (ZOOM + OPCIONES) -->
   <div id="product-detail-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 max-w-lg w-full border-4 border-[#2E1065] shadow-[8px_8px_0px_#EC4899] relative space-y-4">
       <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded-full font-extrabold text-sm border-2 border-[#2E1065] flex items-center justify-center">✕</button>
-      <div class="h-64 bg-purple-100 rounded-2xl overflow-hidden border-2 border-[#2E1065]">
+      <div class="h-48 bg-purple-100 rounded-2xl overflow-hidden border-2 border-[#2E1065]">
         <img id="modal-prod-img" src="" class="w-full h-full object-cover" />
       </div>
       <div>
         <span id="modal-prod-cat" class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]"></span>
         <h3 id="modal-prod-name" class="font-extrabold text-2xl text-[#1E1035] mt-1"></h3>
-        <p id="modal-prod-price" class="text-lg font-black text-[#06B6D4] mt-1"></p>
-        <p id="modal-prod-desc" class="text-sm text-gray-700 mt-3 leading-relaxed bg-purple-50 p-3 rounded-xl border border-purple-200"></p>
+        <p id="modal-prod-price" class="text-xl font-black text-[#06B6D4] mt-1"></p>
+        <p id="modal-prod-desc" class="text-xs text-gray-700 mt-2 leading-relaxed bg-purple-50 p-3 rounded-xl border border-purple-200"></p>
+        
+        <!-- Opciones dinámicas de Tamaño y Sabor con Adicionales -->
+        <div id="modal-options-container" class="space-y-3 mt-3"></div>
       </div>
       <button id="modal-add-btn" class="w-full btn-90s bg-[#6B21A8] text-white font-extrabold py-3 rounded-2xl text-sm">🛒 Agregar al Pedido</button>
     </div>
@@ -343,25 +346,75 @@
             </div>
           </div>
           <div class="p-4 pt-0">
-            ${p.available !== false ? `<button onclick="addToCart('${p.id}')" class="w-full btn-90s bg-[#6B21A8] text-white font-extrabold py-2 rounded-xl text-xs">+ Agregar</button>` : `<button disabled class="w-full bg-gray-200 text-gray-500 py-2 rounded-xl text-xs font-bold">Agotado</button>`}
+            ${p.available !== false ? `<button onclick="openProductModal('${p.id}')" class="w-full btn-90s bg-[#6B21A8] text-white font-extrabold py-2 rounded-xl text-xs">+ Ver Opciones / Agregar</button>` : `<button disabled class="w-full bg-gray-200 text-gray-500 py-2 rounded-xl text-xs font-bold">Agotado</button>`}
           </div>
         </div>
       `).join('');
     };
 
-    // Funciones para el Modal de Detalle de Producto
+    // Funciones para el Modal de Detalle y Opciones Dinámicas
     window.openProductModal = function(id) {
       const prod = state.products.find(p => p.id === id);
       if(!prod) return;
+      
       document.getElementById('modal-prod-img').src = prod.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500';
       document.getElementById('modal-prod-cat').textContent = prod.category || 'General';
       document.getElementById('modal-prod-name').textContent = prod.name;
-      document.getElementById('modal-prod-price').textContent = `$${Number(prod.price || 0).toFixed(2)}`;
       document.getElementById('modal-prod-desc').textContent = prod.description || 'Disfruta de este delicioso producto preparado con el toque artesanal de 199X Coffee.';
-      
+
+      const optContainer = document.getElementById('modal-options-container');
+      optContainer.innerHTML = '';
+
+      window.currentBasePrice = Number(prod.price || 0);
+      document.getElementById('modal-prod-price').textContent = `$${window.currentBasePrice.toFixed(2)}`;
+
+      // 1. Tamaños con Adicionales (Ej: Pequeño:0, Grande:200)
+      let sizeOptions = [];
+      if(prod.sizes && prod.sizes.trim() !== '') {
+        sizeOptions = prod.sizes.split(',').map(s => {
+          const parts = s.split(':');
+          return { name: parts[0].trim(), addPrice: parts[1] ? parseFloat(parts[1]) : 0 };
+        });
+
+        let htmlSizes = `<div class="text-xs"><label class="block font-extrabold text-[#2E1065] mb-1">Selecciona el Tamaño:</label><select id="selected-prod-size" onchange="updateModalPrice()" class="w-full p-2 rounded-xl border-2 border-[#2E1065] bg-purple-50 font-bold">`;
+        sizeOptions.forEach((opt) => {
+          htmlSizes += `<option value="${opt.name}" data-add="${opt.addPrice}">${opt.name} (+ $${opt.addPrice.toFixed(2)})</option>`;
+        });
+        htmlSizes += `</select></div>`;
+        optContainer.innerHTML += htmlSizes;
+      }
+
+      // 2. Sabores con Adicionales (Ej: Fresa:300, Vainilla:0)
+      let flavorOptions = [];
+      if(prod.flavors && prod.flavors.trim() !== '') {
+        flavorOptions = prod.flavors.split(',').map(f => {
+          const parts = f.split(':');
+          return { name: parts[0].trim(), addPrice: parts[1] ? parseFloat(parts[1]) : 0 };
+        });
+
+        let htmlFlavors = `<div class="text-xs mt-2"><label class="block font-extrabold text-[#2E1065] mb-1">Selecciona el Sabor:</label><select id="selected-prod-flavor" onchange="updateModalPrice()" class="w-full p-2 rounded-xl border-2 border-[#2E1065] bg-purple-50 font-bold">`;
+        flavorOptions.forEach((opt) => {
+          htmlFlavors += `<option value="${opt.name}" data-add="${opt.addPrice}">${opt.name} (+ $${opt.addPrice.toFixed(2)})</option>`;
+        });
+        htmlFlavors += `</select></div>`;
+        optContainer.innerHTML += htmlFlavors;
+      }
+
+      updateModalPrice();
+
       const addBtn = document.getElementById('modal-add-btn');
       addBtn.onclick = function() {
-        addToCart(prod.id);
+        const sizeSelect = document.getElementById('selected-prod-size');
+        const selectedSize = sizeSelect ? sizeSelect.value : '';
+        
+        const flavorSelect = document.getElementById('selected-prod-flavor');
+        const selectedFlavor = flavorSelect ? flavorSelect.value : '';
+
+        let finalPrice = window.currentBasePrice;
+        if(sizeSelect) finalPrice += parseFloat(sizeSelect.options[sizeSelect.selectedIndex].dataset.add);
+        if(flavorSelect) finalPrice += parseFloat(flavorSelect.options[flavorSelect.selectedIndex].dataset.add);
+
+        addToCartWithOptions(prod.id, selectedSize, selectedFlavor, finalPrice);
         closeProductModal();
       };
 
@@ -370,23 +423,48 @@
       modal.classList.add('flex');
     };
 
+    window.updateModalPrice = function() {
+      let total = window.currentBasePrice;
+      const sizeSelect = document.getElementById('selected-prod-size');
+      if(sizeSelect) {
+        total += parseFloat(sizeSelect.options[sizeSelect.selectedIndex].dataset.add || 0);
+      }
+      const flavorSelect = document.getElementById('selected-prod-flavor');
+      if(flavorSelect) {
+        total += parseFloat(flavorSelect.options[flavorSelect.selectedIndex].dataset.add || 0);
+      }
+      document.getElementById('modal-prod-price').textContent = `$${total.toFixed(2)}`;
+    };
+
     window.closeProductModal = function() {
       const modal = document.getElementById('product-detail-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
     };
 
-    window.addToCart = function(id) {
+    window.addToCartWithOptions = function(id, size, flavor, customPrice) {
       const prod = state.products.find(p => p.id === id);
       if (!prod) return;
-      const exist = state.cart.find(i => i.id === id);
-      if (exist) exist.qty++; else state.cart.push({ id: prod.id, name: prod.name, price: Number(prod.price), qty: 1 });
+      
+      const cartKey = `${id}-${size}-${flavor}`;
+      const exist = state.cart.find(i => i.cartKey === cartKey);
+      
+      let displayName = prod.name;
+      if(size || flavor) {
+        displayName += ` (${[size, flavor].filter(Boolean).join(' - ')})`;
+      }
+
+      if (exist) {
+        exist.qty++;
+      } else {
+        state.cart.push({ cartKey, id: prod.id, name: displayName, price: customPrice, qty: 1 });
+      }
       renderCart();
       showToast(`✨ Agregado: ${prod.name}`);
     };
 
-    window.updateCartQty = function(id, delta) {
-      const idx = state.cart.findIndex(i => i.id === id);
+    window.updateCartQty = function(cartKey, delta) {
+      const idx = state.cart.findIndex(i => i.cartKey === cartKey);
       if (idx === -1) return;
       state.cart[idx].qty += delta;
       if (state.cart[idx].qty <= 0) state.cart.splice(idx, 1);
@@ -417,9 +495,9 @@
         <div class="flex items-center justify-between bg-purple-50 p-2 rounded-xl border border-purple-200 text-xs">
           <div><p class="font-extrabold">${i.name}</p><p class="font-bold text-[#6B21A8]">$${(i.price * i.qty).toFixed(2)}</p></div>
           <div class="flex items-center gap-1">
-            <button onclick="updateCartQty('${i.id}', -1)" class="w-5 h-5 bg-white border font-bold">-</button>
+            <button onclick="updateCartQty('${i.cartKey}', -1)" class="w-5 h-5 bg-white border font-bold">-</button>
             <span class="font-extrabold w-4 text-center">${i.qty}</span>
-            <button onclick="updateCartQty('${i.id}', 1)" class="w-5 h-5 bg-[#FFD600] border font-bold">+</button>
+            <button onclick="updateCartQty('${i.cartKey}', 1)" class="w-5 h-5 bg-[#FFD600] border font-bold">+</button>
           </div>
         </div>
       `).join('');
