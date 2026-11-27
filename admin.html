@@ -172,6 +172,18 @@
                             <input type="text" id="prodFlavors" placeholder="Sabores (ej: Fresa, Chocolate, Vainilla o Fresa:150, Nutella:200)" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-xs">
                             <p class="text-[10px] text-gray-400 mt-1">Separa por coma (puedes añadir <b>:Precio</b> o dejar solo el nombre). Vacío = <b>único sabor</b>.</p>
                         </div>
+                         <div class="md:col-span-2">
+                            <input type="text" id="prodFlavors" placeholder="Azúcar de preferencia (ej: Crema, Blanca, Sin Azucar)" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-xs">
+                            <p class="text-[10px] text-gray-400 mt-1">Separa por coma (puedes añadir <b>:Precio</b> o dejar solo el nombre). Vacío = <b>único sabor</b>.</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <input type="text" id="prodFlavors" placeholder="Leche (ej: Descremada:20, Almendra:30)" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-xs">
+                            <p class="text-[10px] text-gray-400 mt-1">Separa por coma (puedes añadir <b>:Precio</b> o dejar solo el nombre). Vacío = <b>único sabor</b>.</p>
+                        </div>
+                         <div class="md:col-span-2">
+                            <input type="text" id="prodFlavors" placeholder="Cremas (ej: Chantillí:20, no crema)" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-xs">
+                            <p class="text-[10px] text-gray-400 mt-1">Separa por coma (puedes añadir <b>:Precio</b> o dejar solo el nombre). Vacío = <b>único sabor</b>.</p>
+                        </div>
 
                         <textarea id="prodDesc" placeholder="Descripción breve" class="md:col-span-3 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white"></textarea>
                         
@@ -600,7 +612,7 @@
                         <div class="mt-2 space-y-1 text-[11px]">
                             <p class="text-retroYellow"><b>Tamaños:</b> ${prod.sizes && prod.sizes.trim() ? prod.sizes : 'Único tamaño'}</p>
                             <p class="text-pink-300"><b>Sabores:</b> ${prod.flavors && prod.flavors.trim() ? prod.flavors : 'Único sabor'}</p>
-                            <p class="text-pink-300"><b>Azucar de preferencia:</b> ${prod.flavors && prod.flavors.trim() ? prod.flavors : 'Único sabor'}</p>
+                            <p class="text-pink-300"><b>Azúcar de preferencia:</b> ${prod.flavors && prod.flavors.trim() ? prod.flavors : 'Único sabor'}</p>
                             <p class="text-pink-300"><b>Leche:</b> ${prod.flavors && prod.flavors.trim() ? prod.flavors : 'Único sabor'}</p>
                             <p class="text-pink-300"><b>Cremas:</b> ${prod.flavors && prod.flavors.trim() ? prod.flavors : 'Único sabor'}</p>
                         </div>
