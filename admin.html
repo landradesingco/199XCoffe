@@ -463,9 +463,9 @@
             const filterDate = document.getElementById('accFilterDate')?.value;
             const filterMonth = document.getElementById('accFilterMonth')?.value;
 
-            // Filtrar Órdenes (Solo se suman a Ventas Totales si el estado es 'Transferencia Aceptada')
+            // Filtrar Órdenes (Solo se suman a Ventas Totales si el estado es 'Entregado')
             const filteredOrders = globalOrders.filter(o => {
-                if((o.status || 'Pendiente') !== 'Transferencia Aceptada') return false;
+                if((o.status || 'Pendiente') !== 'Entregado') return false;
                 if(!o.date) return true;
                 let orderDate = o.date;
                 if(orderDate.includes('/')) {
@@ -525,7 +525,7 @@
         function calculateMonthlyMetrics() {
             const monthlyMap = {};
             globalOrders.forEach(o => {
-                if((o.status || 'Pendiente') !== 'Transferencia Aceptada') return;
+                if((o.status || 'Pendiente') !== 'ncia Aceptada') return;
                 if(!o.date) return;
                 let d = o.date;
                 if(d.includes('/')) {
@@ -722,7 +722,7 @@
                 items: [{ name: details, qty: 1, price: total }],
                 total,
                 channel: type,
-                status: 'Transferencia Aceptada',
+                status: 'Entregado',
                 date: dateStr,
                 time: now.toLocaleTimeString()
             });
