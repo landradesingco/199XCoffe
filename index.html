@@ -27,6 +27,23 @@
   <!-- TOAST CONTAINER -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4"></div>
 
+  <!-- MODAL DETALLE DE PRODUCTO (ZOOM + DESCRIPCIÓN COMPLETA) -->
+  <div id="product-detail-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-lg w-full border-4 border-[#2E1065] shadow-[8px_8px_0px_#EC4899] relative space-y-4">
+      <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded-full font-extrabold text-sm border-2 border-[#2E1065] flex items-center justify-center">✕</button>
+      <div class="h-64 bg-purple-100 rounded-2xl overflow-hidden border-2 border-[#2E1065]">
+        <img id="modal-prod-img" src="" class="w-full h-full object-cover" />
+      </div>
+      <div>
+        <span id="modal-prod-cat" class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]"></span>
+        <h3 id="modal-prod-name" class="font-extrabold text-2xl text-[#1E1035] mt-1"></h3>
+        <p id="modal-prod-price" class="text-lg font-black text-[#06B6D4] mt-1"></p>
+        <p id="modal-prod-desc" class="text-sm text-gray-700 mt-3 leading-relaxed bg-purple-50 p-3 rounded-xl border border-purple-200"></p>
+      </div>
+      <button id="modal-add-btn" class="w-full btn-90s bg-[#6B21A8] text-white font-extrabold py-3 rounded-2xl text-sm">🛒 Agregar al Pedido</button>
+    </div>
+  </div>
+
   <!-- MODAL ÉXITO / WHATSAPP TRANSFERENCIA -->
   <div id="whatsapp-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 max-w-md w-full border-4 border-[#2E1065] shadow-[8px_8px_0px_#06B6D4] text-center space-y-4">
@@ -315,14 +332,14 @@
       grid.innerHTML = filtered.map(p => `
         <div class="bg-white rounded-3xl overflow-hidden card-90s flex flex-col justify-between ${p.available === false ? 'opacity-60' : ''}">
           <div>
-            <div class="relative h-44 bg-purple-100 border-b-2 border-[#2E1065]">
-              <img src="${p.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'" class="w-full h-full object-cover" />
+            <div class="relative h-44 bg-purple-100 border-b-2 border-[#2E1065] cursor-pointer" onclick="openProductModal('${p.id}')">
+              <img src="${p.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
               <span class="absolute bottom-3 right-3 bg-[#2E1065] text-[#FFD600] px-3 py-1 rounded-xl font-retro font-extrabold text-sm border border-[#FFD600]">$${Number(p.price || 0).toFixed(2)}</span>
             </div>
             <div class="p-4">
               <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]">${p.category || 'General'}</span>
-              <h3 class="font-extrabold text-base text-[#1E1035] mt-1">${p.name}</h3>
-              <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.description || ''}</p>
+              <h3 onclick="openProductModal('${p.id}')" class="font-extrabold text-base text-[#1E1035] mt-1 cursor-pointer hover:text-[#6B21A8] transition">${p.name}</h3>
+              <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.description || 'Sin descripción detallada.'}</p>
             </div>
           </div>
           <div class="p-4 pt-0">
@@ -330,6 +347,33 @@
           </div>
         </div>
       `).join('');
+    };
+
+    // Funciones para el Modal de Detalle de Producto
+    window.openProductModal = function(id) {
+      const prod = state.products.find(p => p.id === id);
+      if(!prod) return;
+      document.getElementById('modal-prod-img').src = prod.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500';
+      document.getElementById('modal-prod-cat').textContent = prod.category || 'General';
+      document.getElementById('modal-prod-name').textContent = prod.name;
+      document.getElementById('modal-prod-price').textContent = `$${Number(prod.price || 0).toFixed(2)}`;
+      document.getElementById('modal-prod-desc').textContent = prod.description || 'Disfruta de este delicioso producto preparado con el toque artesanal de 199X Coffee.';
+      
+      const addBtn = document.getElementById('modal-add-btn');
+      addBtn.onclick = function() {
+        addToCart(prod.id);
+        closeProductModal();
+      };
+
+      const modal = document.getElementById('product-detail-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.closeProductModal = function() {
+      const modal = document.getElementById('product-detail-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
     };
 
     window.addToCart = function(id) {
@@ -358,9 +402,7 @@
       const totalItems = state.cart.reduce((s, i) => s + i.qty, 0);
       const subtotalAmount = state.cart.reduce((s, i) => s + (i.price * i.qty), 0);
       
-      const deliveryType = document.getElementById('cust-delivery-type')?.value || 'recogida';
-      const shippingFee = (deliveryType === 'delivery' && subtotalAmount > 0) ? 150.00 : 0.00;
-      const totalAmount = subtotalAmount + shippingFee;
+      const totalAmount = subtotalAmount;
 
       document.getElementById('hero-cart-count').textContent = totalItems;
       document.getElementById('sidebar-cart-badge').textContent = `${totalItems} items`;
@@ -380,7 +422,7 @@
             <button onclick="updateCartQty('${i.id}', 1)" class="w-5 h-5 bg-[#FFD600] border font-bold">+</button>
           </div>
         </div>
-      `).join('') + (shippingFee > 0 ? `<div class="flex justify-between items-center bg-yellow-50 p-2 rounded-xl border border-yellow-200 text-xs font-bold text-yellow-900 mt-2"><span>🛵 Costo de Envío:</span><span>$${shippingFee.toFixed(2)}</span></div>` : '');
+      `).join('');
     }
 
     window.submitWebOrder = async function(e) {
@@ -389,8 +431,7 @@
       
       const subtotal = state.cart.reduce((s, i) => s + (i.price * i.qty), 0);
       const deliveryType = document.getElementById('cust-delivery-type').value;
-      const shippingFee = deliveryType === 'delivery' ? 150.00 : 0.00;
-      const total = subtotal + shippingFee;
+      const total = subtotal;
 
       const customerName = document.getElementById('cust-name').value.trim();
       const customerPhone = document.getElementById('cust-phone').value.trim();
@@ -404,7 +445,6 @@
         customerPhone,
         customerAddress,
         deliveryType,
-        shippingFee,
         date,
         time,
         paymentMethod: 'Transferencia Bancaria',
@@ -420,7 +460,7 @@
         await addDoc(collection(db, '199x_orders'), order);
         
         let itemsText = state.cart.map(i => `- ${i.qty}x ${i.name} ($${(i.price * i.qty).toFixed(2)})`).join('%0A');
-        let waMessage = `Hola! Acabo de hacer el pedido en 199X Coffee.%0A%0A*Cliente:* ${encodeURIComponent(customerName)}%0A*Dirección:* ${encodeURIComponent(customerAddress)}%0A*Tipo:* ${deliveryType === 'delivery' ? 'Envío a domicilio' : 'Recogida en local'}%0A*Fecha/Hora:* ${date} a las ${time}%0A*Total (con envío):* $${total.toFixed(2)}%0A%0A*Productos:*%0A${itemsText}%0A%0AAdjunto mi comprobante de transferencia.`;
+        let waMessage = `Hola! Acabo de hacer el pedido en 199X Coffee.%0A%0A*Cliente:* ${encodeURIComponent(customerName)}%0A*Dirección:* ${encodeURIComponent(customerAddress)}%0A*Tipo:* Envío a domicilio%0A*Fecha/Hora:* ${date} a las ${time}%0A*Total:* $${total.toFixed(2)}%0A%0A*Productos:*%0A${itemsText}%0A%0AAdjunto mi comprobante de transferencia.`;
         document.getElementById('whatsapp-send-btn').href = `https://wa.me/18494040514?text=${waMessage}`;
 
         state.cart = [];
