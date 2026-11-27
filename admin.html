@@ -525,7 +525,7 @@
         function calculateMonthlyMetrics() {
             const monthlyMap = {};
             globalOrders.forEach(o => {
-                if((o.status || 'Pendiente') !== 'ncia Aceptada') return;
+                if((o.status || 'Pendiente') !== 'Entregado') return;
                 if(!o.date) return;
                 let d = o.date;
                 if(d.includes('/')) {
