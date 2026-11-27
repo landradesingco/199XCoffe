@@ -29,18 +29,18 @@
 
   <!-- MODAL DETALLE DE PRODUCTO (ZOOM + OPCIONES) -->
   <div id="product-detail-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 max-w-lg w-full border-4 border-[#2E1065] shadow-[8px_8px_0px_#EC4899] relative space-y-4">
+    <div class="bg-white rounded-3xl p-6 max-w-lg w-full border-4 border-[#2E1065] shadow-[8px_8px_0px_#EC4899] relative space-y-4 max-h-[90vh] overflow-y-auto">
       <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded-full font-extrabold text-sm border-2 border-[#2E1065] flex items-center justify-center">✕</button>
-      <div class="h-48 bg-purple-100 rounded-2xl overflow-hidden border-2 border-[#2E1065]">
+      <div class="h-40 bg-purple-100 rounded-2xl overflow-hidden border-2 border-[#2E1065]">
         <img id="modal-prod-img" src="" class="w-full h-full object-cover" />
       </div>
       <div>
         <span id="modal-prod-cat" class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]"></span>
-        <h3 id="modal-prod-name" class="font-extrabold text-2xl text-[#1E1035] mt-1"></h3>
-        <p id="modal-prod-price" class="text-xl font-black text-[#06B6D4] mt-1"></p>
+        <h3 id="modal-prod-name" class="font-extrabold text-xl text-[#1E1035] mt-1"></h3>
+        <p id="modal-prod-price" class="text-lg font-black text-[#06B6D4] mt-1"></p>
         <p id="modal-prod-desc" class="text-xs text-gray-700 mt-2 leading-relaxed bg-purple-50 p-3 rounded-xl border border-purple-200"></p>
         
-        <!-- Opciones dinámicas de Tamaño y Sabor con Adicionales -->
+        <!-- Opciones dinámicas completas -->
         <div id="modal-options-container" class="space-y-3 mt-3"></div>
       </div>
       <button id="modal-add-btn" class="w-full btn-90s bg-[#6B21A8] text-white font-extrabold py-3 rounded-2xl text-sm">🛒 Agregar al Pedido</button>
@@ -343,6 +343,15 @@
               <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]">${p.category || 'General'}</span>
               <h3 onclick="openProductModal('${p.id}')" class="font-extrabold text-base text-[#1E1035] mt-1 cursor-pointer hover:text-[#6B21A8] transition">${p.name}</h3>
               <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.description || 'Sin descripción detallada.'}</p>
+              
+              <!-- Vista previa de opciones configuradas -->
+              <div class="mt-3 space-y-1 text-[11px] pt-2 border-t border-purple-100">
+                <p class="text-purple-900 truncate"><b>Tamaños:</b> ${p.sizes && p.sizes.trim() ? p.sizes : 'Único'}</p>
+                <p class="text-pink-700 truncate"><b>Sabores:</b> ${p.flavors && p.flavors.trim() ? p.flavors : 'Único'}</p>
+                <p class="text-blue-700 truncate"><b>Azúcar:</b> ${p.sugar && p.sugar.trim() ? p.sugar : 'Regular'}</p>
+                <p class="text-emerald-700 truncate"><b>Leche:</b> ${p.milk && p.milk.trim() ? p.milk : 'Regular'}</p>
+                <p class="text-amber-700 truncate"><b>Cremas:</b> ${p.cream && p.cream.trim() ? p.cream : 'Estándar'}</p>
+              </div>
             </div>
           </div>
           <div class="p-4 pt-0">
@@ -352,7 +361,7 @@
       `).join('');
     };
 
-    // Funciones para el Modal de Detalle y Opciones Dinámicas
+    // Funciones para el Modal de Detalle y Opciones Dinámicas Completas
     window.openProductModal = function(id) {
       const prod = state.products.find(p => p.id === id);
       if(!prod) return;
@@ -368,53 +377,60 @@
       window.currentBasePrice = Number(prod.price || 0);
       document.getElementById('modal-prod-price').textContent = `$${window.currentBasePrice.toFixed(2)}`;
 
-      // 1. Tamaños con Adicionales (Ej: Pequeño:0, Grande:200)
-      let sizeOptions = [];
-      if(prod.sizes && prod.sizes.trim() !== '') {
-        sizeOptions = prod.sizes.split(',').map(s => {
-          const parts = s.split(':');
+      // Función auxiliar para generar selectores dinámicos con formato Nombre:PrecioAdicional
+      const createOptionSelect = (fieldKey, labelText, rawData) => {
+        if (!rawData || rawData.trim() === '') return null;
+        const options = rawData.split(',').map(item => {
+          const parts = item.split(':');
           return { name: parts[0].trim(), addPrice: parts[1] ? parseFloat(parts[1]) : 0 };
         });
 
-        let htmlSizes = `<div class="text-xs"><label class="block font-extrabold text-[#2E1065] mb-1">Selecciona el Tamaño:</label><select id="selected-prod-size" onchange="updateModalPrice()" class="w-full p-2 rounded-xl border-2 border-[#2E1065] bg-purple-50 font-bold">`;
-        sizeOptions.forEach((opt) => {
-          htmlSizes += `<option value="${opt.name}" data-add="${opt.addPrice}">${opt.name} (+ $${opt.addPrice.toFixed(2)})</option>`;
+        let html = `<div class="text-xs"><label class="block font-extrabold text-[#2E1065] mb-1">${labelText}:</label><select id="selected-prod-${fieldKey}" onchange="updateModalPrice()" class="w-full p-2 rounded-xl border-2 border-[#2E1065] bg-purple-50 font-bold">`;
+        options.forEach(opt => {
+          const priceText = opt.addPrice > 0 ? ` (+ $${opt.addPrice.toFixed(2)})` : '';
+          html += `<option value="${opt.name}" data-add="${opt.addPrice}">${opt.name}${priceText}</option>`;
         });
-        htmlSizes += `</select></div>`;
-        optContainer.innerHTML += htmlSizes;
-      }
+        html += `</select></div>`;
+        return html;
+      };
 
-      // 2. Sabores con Adicionales (Ej: Fresa:300, Vainilla:0)
-      let flavorOptions = [];
-      if(prod.flavors && prod.flavors.trim() !== '') {
-        flavorOptions = prod.flavors.split(',').map(f => {
-          const parts = f.split(':');
-          return { name: parts[0].trim(), addPrice: parts[1] ? parseFloat(parts[1]) : 0 };
-        });
+      // Inyectar selectores si están definidos en el producto
+      const sizeHtml = createOptionSelect('size', 'Selecciona el Tamaño', prod.sizes);
+      const flavorHtml = createOptionSelect('flavor', 'Selecciona el Sabor', prod.flavors);
+      const sugarHtml = createOptionSelect('sugar', 'Azúcar de Preferencia', prod.sugar);
+      const milkHtml = createOptionSelect('milk', 'Tipo de Leche', prod.milk);
+      const creamHtml = createOptionSelect('cream', 'Cremas', prod.cream);
 
-        let htmlFlavors = `<div class="text-xs mt-2"><label class="block font-extrabold text-[#2E1065] mb-1">Selecciona el Sabor:</label><select id="selected-prod-flavor" onchange="updateModalPrice()" class="w-full p-2 rounded-xl border-2 border-[#2E1065] bg-purple-50 font-bold">`;
-        flavorOptions.forEach((opt) => {
-          htmlFlavors += `<option value="${opt.name}" data-add="${opt.addPrice}">${opt.name} (+ $${opt.addPrice.toFixed(2)})</option>`;
-        });
-        htmlFlavors += `</select></div>`;
-        optContainer.innerHTML += htmlFlavors;
-      }
+      if (sizeHtml) optContainer.innerHTML += sizeHtml;
+      if (flavorHtml) optContainer.innerHTML += flavorHtml;
+      if (sugarHtml) optContainer.innerHTML += sugarHtml;
+      if (milkHtml) optContainer.innerHTML += milkHtml;
+      if (creamHtml) optContainer.innerHTML += creamHtml;
 
       updateModalPrice();
 
       const addBtn = document.getElementById('modal-add-btn');
       addBtn.onclick = function() {
         const sizeSelect = document.getElementById('selected-prod-size');
-        const selectedSize = sizeSelect ? sizeSelect.value : '';
-        
         const flavorSelect = document.getElementById('selected-prod-flavor');
+        const sugarSelect = document.getElementById('selected-prod-sugar');
+        const milkSelect = document.getElementById('selected-prod-milk');
+        const creamSelect = document.getElementById('selected-prod-cream');
+
+        const selectedSize = sizeSelect ? sizeSelect.value : '';
         const selectedFlavor = flavorSelect ? flavorSelect.value : '';
+        const selectedSugar = sugarSelect ? sugarSelect.value : '';
+        const selectedMilk = milkSelect ? milkSelect.value : '';
+        const selectedCream = creamSelect ? creamSelect.value : '';
 
         let finalPrice = window.currentBasePrice;
-        if(sizeSelect) finalPrice += parseFloat(sizeSelect.options[sizeSelect.selectedIndex].dataset.add);
-        if(flavorSelect) finalPrice += parseFloat(flavorSelect.options[flavorSelect.selectedIndex].dataset.add);
+        if(sizeSelect) finalPrice += parseFloat(sizeSelect.options[sizeSelect.selectedIndex].dataset.add || 0);
+        if(flavorSelect) finalPrice += parseFloat(flavorSelect.options[flavorSelect.selectedIndex].dataset.add || 0);
+        if(sugarSelect) finalPrice += parseFloat(sugarSelect.options[sugarSelect.selectedIndex].dataset.add || 0);
+        if(milkSelect) finalPrice += parseFloat(milkSelect.options[milkSelect.selectedIndex].dataset.add || 0);
+        if(creamSelect) finalPrice += parseFloat(creamSelect.options[creamSelect.selectedIndex].dataset.add || 0);
 
-        addToCartWithOptions(prod.id, selectedSize, selectedFlavor, finalPrice);
+        addToCartWithOptions(prod.id, { size: selectedSize, flavor: selectedFlavor, sugar: selectedSugar, milk: selectedMilk, cream: selectedCream }, finalPrice);
         closeProductModal();
       };
 
@@ -425,14 +441,12 @@
 
     window.updateModalPrice = function() {
       let total = window.currentBasePrice;
-      const sizeSelect = document.getElementById('selected-prod-size');
-      if(sizeSelect) {
-        total += parseFloat(sizeSelect.options[sizeSelect.selectedIndex].dataset.add || 0);
-      }
-      const flavorSelect = document.getElementById('selected-prod-flavor');
-      if(flavorSelect) {
-        total += parseFloat(flavorSelect.options[flavorSelect.selectedIndex].dataset.add || 0);
-      }
+      ['size', 'flavor', 'sugar', 'milk', 'cream'].forEach(key => {
+        const sel = document.getElementById(`selected-prod-${key}`);
+        if(sel) {
+          total += parseFloat(sel.options[sel.selectedIndex].dataset.add || 0);
+        }
+      });
       document.getElementById('modal-prod-price').textContent = `$${total.toFixed(2)}`;
     };
 
@@ -442,16 +456,18 @@
       modal.classList.remove('flex');
     };
 
-    window.addToCartWithOptions = function(id, size, flavor, customPrice) {
+    window.addToCartWithOptions = function(id, opts, customPrice) {
       const prod = state.products.find(p => p.id === id);
       if (!prod) return;
       
-      const cartKey = `${id}-${size}-${flavor}`;
+      const optString = `${opts.size || ''}-${opts.flavor || ''}-${opts.sugar || ''}-${opts.milk || ''}-${opts.cream || ''}`;
+      const cartKey = `${id}-${optString}`;
       const exist = state.cart.find(i => i.cartKey === cartKey);
       
+      let detailsArr = [opts.size, opts.flavor, opts.sugar, opts.milk, opts.cream].filter(Boolean);
       let displayName = prod.name;
-      if(size || flavor) {
-        displayName += ` (${[size, flavor].filter(Boolean).join(' - ')})`;
+      if(detailsArr.length > 0) {
+        displayName += ` (${detailsArr.join(' - ')})`;
       }
 
       if (exist) {
