@@ -638,14 +638,19 @@
             const category = document.getElementById('prodCategory').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
             const description = document.getElementById('prodDesc').value;
+            const sizes = document.getElementById('prodSizes').value;
+            const flavors = document.getElementById('prodFlavors').value;
             const fileInput = document.getElementById('prodImageFile');
+
+            const productData = { name, category, price, description, sizes, flavors };
 
             if(fileInput.files && fileInput.files[0]) {
                 compressImage(fileInput.files[0], async function(compressedUrl) {
-                    await commitProductData(id, { name, category, price, description, image: compressedUrl });
+                    productData.image = compressedUrl;
+                    await commitProductData(id, productData);
                 });
             } else {
-                await commitProductData(id, { name, category, price, description });
+                await commitProductData(id, productData);
             }
         }
 
@@ -670,16 +675,18 @@
             }
         }
 
-        function editProduct(id, name, category, price, description) {
+        function editProduct(id, name, category, price, description, sizes, flavors) {
             document.getElementById('editingProductId').value = id;
             document.getElementById('prodName').value = decodeURIComponent(name);
             document.getElementById('prodCategory').value = category;
             document.getElementById('prodPrice').value = price;
-            document.getElementById('prodDesc').value = decodeURIComponent(description);
+            document.getElementById('prodDesc').value = decodeURIComponent(description || '');
+            document.getElementById('prodSizes').value = decodeURIComponent(sizes || '');
+            document.getElementById('prodFlavors').value = decodeURIComponent(flavors || '');
             document.getElementById('menuFormTitle').innerText = 'Editando Producto';
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
-
+        
         async function deleteProduct(id) {
             if(confirm('¿Seguro que deseas eliminar este producto?')) {
                 await window.deleteDoc(window.doc(window.db, "199x_products", id));
