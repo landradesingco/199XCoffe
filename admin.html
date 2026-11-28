@@ -995,20 +995,20 @@ function editProduct(id, name, category, price, description, sizes, flavors, sug
             }
         }
 
-        async function saveExpense(e) {
-    e.preventDefault();
-    const description = document.getElementById('expDesc').value;
-    const amount = parseFloat(document.getElementById('expAmount').value);
-    const type = document.getElementById('expType').value;
+      async function saveExpense(e) {
+            e.preventDefault();
+            const description = document.getElementById('expDesc').value;
+            const amount = parseFloat(document.getElementById('expAmount').value);
+            const type = document.getElementById('expType').value;
 
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
-    await window.addDoc(window.collection(window.db, "199x_accounting"), { description, amount, type, date: dateStr });
-    document.getElementById('expDesc').value = '';
-    document.getElementById('expAmount').value = '';
-    alert('¡Egreso registrado con éxito!');
-}
-</script>
+            await window.addDoc(window.collection(window.db, "199x_accounting"), { description, amount, type, date: dateStr });
+            document.getElementById('expDesc').value = '';
+            document.getElementById('expAmount').value = '';
+            alert('¡Egreso registrado con éxito!');
+        }
+    </script>
 </body>
 </html>
