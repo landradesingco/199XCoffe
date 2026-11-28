@@ -250,32 +250,30 @@
             <button type="submit" id="invSubmitBtn" class="bg-retroFuchsia text-white font-bold py-2 px-4 rounded-xl shadow hover:opacity-90 text-sm">Guardar Insumo</button>
         </form>
 
-       <!-- BUSCADOR Y BOTÓN DE CIERRE DE MES -->
-<div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-    <input type="text" id="inventorySearchInput" oninput="renderInventoryTable()" placeholder="🔍 Buscar insumo en inventario..." class="w-full md:w-80 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm">
-    <button onclick="performMonthlyClose()" class="w-full md:w-auto bg-retroPurple text-retroYellow font-bold px-4 py-2 rounded-xl text-xs border border-retroYellow shadow hover:opacity-90">
-        🔄 Realizar Cierre de Mes (Arrastrar Sobrante)
-    </button>
-</div>
+        <!-- BUSCADOR / FILTRO -->
+        <div class="mb-4">
+            <input type="text" id="inventorySearchInput" oninput="renderInventoryTable()" placeholder="🔍 Buscar insumo en inventario..." class="w-full md:w-80 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm">
+        </div>
 
-<!-- TABLA DE INVENTARIO -->
-<div class="overflow-x-auto">
-    <table class="w-full text-left border-collapse">
-        <thead>
-            <tr class="border-b border-gray-700 text-retroFuchsia text-xs uppercase">
-                <th class="py-3 px-4">Insumo</th>
-                <th class="py-3 px-4">Stock Inicial</th>
-                <th class="py-3 px-4">Stock Actual</th>
-                <th class="py-3 px-4">Unidad</th>
-                <th class="py-3 px-4">Precio Unit.</th>
-                <th class="py-3 px-4">Inversión Total</th>
-                <th class="py-3 px-4 text-center">Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="inventoryTableBody" class="text-sm"></tbody>
-    </table>
-</div>
-        
+        <!-- TABLA DE INVENTARIO -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-700 text-retroFuchsia text-xs uppercase">
+                        <th class="py-3 px-4">Insumo</th>
+                        <th class="py-3 px-4">Stock</th>
+                        <th class="py-3 px-4">Unidad</th>
+                        <th class="py-3 px-4">Precio Unit.</th>
+                        <th class="py-3 px-4">Inversión Total</th>
+                        <th class="py-3 px-4 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody" class="text-sm"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
             <!-- 5. CONTABILIDAD Y MÉTRICAS -->
             <section id="section-accounting" class="admin-section hidden space-y-6">
                 <!-- Filtros de Contabilidad -->
@@ -389,196 +387,51 @@
             activeTab.classList.add('bg-retroYellow', 'text-retroPurple');
         }
 
-       function initAdminData() {
-    const db = window.db;
-    if(!db) return;
+        function initAdminData() {
+            const db = window.db;
+            if(!db) return;
 
-    // 1. Escuchar Órdenes (Ventas)
-    window.onSnapshot(window.collection(db, "199x_orders"), (snapshot) => {
-        globalOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderOrders();
-        renderAccounting();
-    });
+            // Escuchar Órdenes
+            window.onSnapshot(window.collection(db, "199x_orders"), (snapshot) => {
+                globalOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderOrders();
+                renderAccounting();
+            });
 
-    // 2. Escuchar Productos (Menú)
-    window.onSnapshot(window.collection(db, "199x_products"), (snapshot) => {
-        globalProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderAdminMenu();
-    }); 
+            // Escuchar Productos
+            window.onSnapshot(window.collection(db, "199x_products"), (snapshot) => {
+                globalProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderAdminMenu();
+            });
 
-    // 3. Escuchar Egresos y Contabilidad (¡Faltaba esto!)
-    window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
-        globalExpenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderAccounting();
-    });
-}
-  // Asegurar funciones globales para el inventario
-window.globalInventoryData = [];
-
-// Escuchar Inventario desde Firebase
-window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
-    window.globalInventoryData = [];
-    snapshot.forEach(docSnap => {
-        window.globalInventoryData.push({ id: docSnap.id, ...docSnap.data() });
-    });
-    window.renderInventoryTable();
-});
-
-// Función para renderizar y filtrar la tabla con sus respectivos totales
-window.renderInventoryTable = function() {
-    const tbody = document.getElementById('inventoryTableBody');
-    const searchInput = document.getElementById('inventorySearchInput');
-    const totalCapitalEl = document.getElementById('totalInventoryCapital');
-    const totalUnitsEl = document.getElementById('totalInventoryUnits');
-    
-    if(!tbody) return;
-    tbody.innerHTML = '';
-
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    
-    let filtered = window.globalInventoryData.filter(item => 
-        (item.name && item.name.toLowerCase().includes(searchTerm)) ||
-        (item.unit && item.unit.toLowerCase().includes(searchTerm))
-    );
-
-    let totalCapital = 0;
-    let totalUnits = 0;
-    
-    window.globalInventoryData.forEach(item => {
-        const stock = parseFloat(item.stock) || 0;
-        const price = parseFloat(item.price) || 0;
-        totalCapital += (stock * price);
-        totalUnits += stock;
-    });
-    
-    if(totalCapitalEl) totalCapitalEl.innerText = `RD$ ${totalCapital.toFixed(2)}`;
-    if(totalUnitsEl) totalUnitsEl.innerText = `${totalUnits} unidades`;
-
-    filtered.forEach(item => {
-        const initialStock = item.initialStock !== undefined ? item.initialStock : (parseFloat(item.stock) || 0);
-        const stock = parseFloat(item.stock) || 0;
-        const price = parseFloat(item.price) || 0;
-        const totalInvestment = stock * price;
-
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-gray-800 hover:bg-gray-700/50';
-        tr.innerHTML = `
-            <td class="py-3 px-4 font-bold text-white">${item.name}</td>
-            <td class="py-3 px-4 text-gray-400 font-bold">${initialStock}</td>
-            <td class="py-3 px-4 text-retroFuchsia font-bold">${stock}</td>
-            <td class="py-3 px-4 text-gray-300">${item.unit}</td>
-            <td class="py-3 px-4 text-retroTurquoise">RD$ ${price.toFixed(2)}</td>
-            <td class="py-3 px-4 text-retroYellow font-bold">RD$ ${totalInvestment.toFixed(2)}</td>
-            <td class="py-3 px-4 text-center space-x-1">
-                <button onclick="restockItem('${item.id}', ${stock}, '${encodeURIComponent(item.name)}')" class="bg-retroTurquoise text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90" title="Sumar stock">➕</button>
-                <button onclick="deductStock('${item.id}', ${stock}, '${encodeURIComponent(item.name)}')" class="bg-orange-500 text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90" title="Descontar stock">➖</button>
-                <button onclick="editInventoryItem('${item.id}', '${encodeURIComponent(item.name)}', ${initialStock}, ${stock}, ${price}, '${encodeURIComponent(item.unit)}')" class="bg-retroYellow text-retroPurple px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90">Editar</button>
-                <button onclick="deleteInventoryItem('${item.id}')" class="bg-red-600 text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90">Eliminar</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-};
-
-// Función para reabastecer stock (Suma al stock actual)
-window.restockItem = function(id, currentStock, encodedName) {
-    const itemName = decodeURIComponent(encodedName);
-    const qtyToAdd = prompt(`¿Cuántas unidades de "${itemName}" deseas agregar al stock actual (${currentStock})?`);
-    if (qtyToAdd !== null && !isNaN(qtyToAdd) && parseFloat(qtyToAdd) > 0) {
-        const added = parseFloat(qtyToAdd);
-        const newStock = currentStock + added;
-        window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
-            .catch(error => console.error("Error al reabastecer:", error));
-    }
-};
-
-// Función para descontar stock (Resta lo gastado)
-window.deductStock = function(id, currentStock, encodedName) {
-    const itemName = decodeURIComponent(encodedName);
-    const qtyToDeduct = prompt(`¿Cuántas unidades de "${itemName}" se han gastado/utilizado? (Stock actual: ${currentStock})`);
-    if (qtyToDeduct !== null && !isNaN(qtyToDeduct) && parseFloat(qtyToDeduct) > 0) {
-        const deducted = parseFloat(qtyToDeduct);
-        const newStock = Math.max(0, currentStock - deducted);
-        window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
-            .catch(error => console.error("Error al descontar stock:", error));
-    }
-};
-
-// Función para hacer Cierre de Mes (El stock actual pasa a ser el nuevo stock inicial)
-window.performMonthlyClose = async function() {
-    if(confirm('¿Deseas realizar el cierre de mes? Esto establecerá el stock actual de todos los insumos como el nuevo "Stock Inicial" para el mes que entra.')) {
-        try {
-            const batchPromises = window.globalInventoryData.map(item => {
-                const currentStock = parseFloat(item.stock) || 0;
-                return window.updateDoc(window.doc(db, "199x_inventory", item.id), {
-                    initialStock: currentStock // El sobrante se vuelve la base del nuevo mes
+            // Escuchar Inventario
+            window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
+                const tbody = document.getElementById('inventoryTableBody');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                snapshot.forEach(docSnap => {
+                    const item = docSnap.data();
+                    const id = docSnap.id;
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-gray-800 hover:bg-gray-700/50';
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-bold text-white">${item.name}</td>
+                        <td class="py-3 px-4 text-retroFuchsia font-bold">${item.stock}</td>
+                        <td class="py-3 px-4 text-gray-300">${item.unit}</td>
+                        <td class="py-3 px-4">
+                            <button onclick="deleteInventoryItem('${id}')" class="text-red-400 hover:text-red-300 text-xs font-bold">Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
                 });
             });
-            await Promise.all(batchPromises);
-            alert('¡Cierre de mes realizado con éxito! Los inventarios han actualizado su base inicial.');
-        } catch (error) {
-            console.error("Error en cierre de mes:", error);
-            alert('Hubo un error al realizar el cierre.');
-        }
-    }
-};
 
-// Función para cargar datos al formulario al presionar Editar
-window.editInventoryItem = function(id, encodedName, initialStock, stock, price, encodedUnit) {
-    document.getElementById('editingInventoryId').value = id;
-    document.getElementById('invItemName').value = decodeURIComponent(encodedName);
-    document.getElementById('invItemStock').value = stock; // Edita el actual
-    document.getElementById('invItemPrice').value = price;
-    document.getElementById('invItemUnit').value = decodeURIComponent(encodedUnit);
-    
-    const submitBtn = document.getElementById('invSubmitBtn');
-    if(submitBtn) submitBtn.innerText = "Actualizar Insumo";
-    window.scrollTo({top: 0, behavior: 'smooth'});
-};
-
-// Función para guardar o actualizar insumo
-window.saveInventoryItem = async function(e) {
-    e.preventDefault();
-    const id = document.getElementById('editingInventoryId').value;
-    const name = document.getElementById('invItemName').value.trim();
-    const stock = parseFloat(document.getElementById('invItemStock').value);
-    const price = parseFloat(document.getElementById('invItemPrice').value);
-    const unit = document.getElementById('invItemUnit').value.trim();
-
-    try {
-        if (id) {
-            // Actualizar existente (mantiene o actualiza stock)
-            await window.updateDoc(window.doc(db, "199x_inventory", id), { name, stock, price, unit });
-            document.getElementById('editingInventoryId').value = '';
-            document.getElementById('invSubmitBtn').innerText = "Guardar Insumo";
-        } else {
-            // Crear nuevo insumo (el stock inicial es igual al stock con el que nace)
-            await window.addDoc(window.collection(db, "199x_inventory"), { 
-                name, 
-                initialStock: stock, 
-                stock, 
-                price, 
-                unit 
-            });
-        }
-        e.target.reset();
-    } catch (error) {
-        console.error("Error al guardar en inventario:", error);
-        alert("Hubo un error al guardar el insumo.");
-    }
-};
-
-// Función para eliminar insumo
-window.deleteInventoryItem = async function(id) {
-    if(confirm('¿Eliminar insumo?')) {
-        await window.deleteDoc(window.doc(window.db, "199x_inventory", id));
-    }
-};
-        // escuchar gastos
+            // Escuchar Gastos
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
                 globalExpenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderAccounting();
             });
+        }
 
         // Renderizar Órdenes con Filtros y Botón Eliminar
         window.renderOrders = function() {
@@ -961,32 +814,16 @@ function editProduct(id, name, category, price, description, sizes, flavors, sug
         }
 
         async function saveInventoryItem(e) {
-    e.preventDefault();
-    const id = document.getElementById('editingInventoryId').value;
-    const name = document.getElementById('invItemName').value.trim();
-    const stock = parseFloat(document.getElementById('invItemStock').value);
-    const price = parseFloat(document.getElementById('invItemPrice').value);
-    const unit = document.getElementById('invItemUnit').value.trim();
+            e.preventDefault();
+            const name = document.getElementById('invItemName').value;
+            const stock = parseFloat(document.getElementById('invItemStock').value);
+            const unit = document.getElementById('invItemUnit').value;
 
-    const itemData = { name, stock, price, unit };
-
-    try {
-        if (id) {
-            // Actualizar existente
-            await window.updateDoc(window.doc(db, "199x_inventory", id), itemData);
-            document.getElementById('editingInventoryId').value = '';
-            document.getElementById('invSubmitBtn').innerText = "Guardar Insumo";
-        } else {
-            // Crear nuevo
-            await window.addDoc(window.collection(db, "199x_inventory"), itemData);
+            await window.addDoc(window.collection(window.db, "199x_inventory"), { name, stock, unit });
+            document.getElementById('invItemName').value = '';
+            document.getElementById('invItemStock').value = '';
+            document.getElementById('invItemUnit').value = '';
         }
-        // Limpiar formulario
-        e.target.reset();
-    } catch (error) {
-        console.error("Error al guardar en inventario:", error);
-        alert("Hubo un error al guardar el insumo.");
-    }
-}
 
         async function deleteInventoryItem(id) {
             if(confirm('¿Eliminar insumo?')) {
@@ -994,7 +831,7 @@ function editProduct(id, name, category, price, description, sizes, flavors, sug
             }
         }
 
-      async function saveExpense(e) {
+        async function saveExpense(e) {
             e.preventDefault();
             const description = document.getElementById('expDesc').value;
             const amount = parseFloat(document.getElementById('expAmount').value);
