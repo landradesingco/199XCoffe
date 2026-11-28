@@ -389,23 +389,29 @@
             activeTab.classList.add('bg-retroYellow', 'text-retroPurple');
         }
 
-        function initAdminData() {
-            const db = window.db;
-            if(!db) return;
+       function initAdminData() {
+    const db = window.db;
+    if(!db) return;
 
-            // Escuchar Órdenes
-            window.onSnapshot(window.collection(db, "199x_orders"), (snapshot) => {
-                globalOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderOrders();
-                renderAccounting();
-            });
+    // 1. Escuchar Órdenes (Ventas)
+    window.onSnapshot(window.collection(db, "199x_orders"), (snapshot) => {
+        globalOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderOrders();
+        renderAccounting();
+    });
 
-            // Escuchar Productos
-            window.onSnapshot(window.collection(db, "199x_products"), (snapshot) => {
-                globalProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderAdminMenu();
-            });
+    // 2. Escuchar Productos (Menú)
+    window.onSnapshot(window.collection(db, "199x_products"), (snapshot) => {
+        globalProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAdminMenu();
+    }); 
 
+    // 3. Escuchar Egresos y Contabilidad (¡Faltaba esto!)
+    window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
+        globalExpenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAccounting();
+    });
+}
   // Asegurar funciones globales para el inventario
 window.globalInventoryData = [];
 
