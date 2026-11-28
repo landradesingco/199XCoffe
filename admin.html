@@ -566,8 +566,17 @@
             if (qtyToAdd !== null && !isNaN(qtyToAdd) && parseFloat(qtyToAdd) > 0) {
                 const added = parseFloat(qtyToAdd);
                 const newStock = currentStock + added;
-                window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
-                    .catch(error => console.error("Error al reabastecer:", error));
+                
+                // Buscar el insumo actual para sumarle también al Stock Inicial existente
+                const itemObj = globalInventoryData.find(i => i.id === id);
+                const currentInitial = itemObj && itemObj.initialStock !== undefined ? parseFloat(itemObj.initialStock) : currentStock;
+                const newInitialStock = currentInitial + added;
+
+                window.updateDoc(window.doc(db, "199x_inventory", id), { 
+                    stock: newStock,
+                    initialStock: newInitialStock
+                })
+                .catch(error => console.error("Error al reabastecer:", error));
             }
         };
 
