@@ -404,27 +404,98 @@
                 renderAdminMenu();
             });
 
-            // Escuchar Inventario
-            window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
-                const tbody = document.getElementById('inventoryTableBody');
-                if(!tbody) return;
-                tbody.innerHTML = '';
-                snapshot.forEach(docSnap => {
-                    const item = docSnap.data();
-                    const id = docSnap.id;
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b border-gray-800 hover:bg-gray-700/50';
-                    tr.innerHTML = `
-                        <td class="py-3 px-4 font-bold text-white">${item.name}</td>
-                        <td class="py-3 px-4 text-retroFuchsia font-bold">${item.stock}</td>
-                        <td class="py-3 px-4 text-gray-300">${item.unit}</td>
-                        <td class="py-3 px-4">
-                            <button onclick="deleteInventoryItem('${id}')" class="text-red-400 hover:text-red-300 text-xs font-bold">Eliminar</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            });
+           // Variable global para almacenar los datos del inventario y usarlos en el filtro y totales
+let globalInventoryData = [];
+
+// Escuchar Inventario desde Firebase
+window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
+    globalInventoryData = [];
+    snapshot.forEach(docSnap => {
+        globalInventoryData.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderInventoryTable();
+});
+
+// Función para renderizar y filtrar la tabla con sus respectivos totales
+function renderInventoryTable() {
+    const tbody = document.getElementById('inventoryTableBody');
+    const searchInput = document.getElementById('inventorySearchInput');
+    const totalCapitalEl = document.getElementById('totalInventoryCapital');
+    const totalUnitsEl = document.getElementById('totalInventoryUnits');
+    
+    if(!tbody) return;
+    tbody.innerHTML = '';
+
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    let filtered = globalInventoryData.filter(item => 
+        (item.name && item.name.toLowerCase().includes(searchTerm)) ||
+        (item.unit && item.unit.toLowerCase().includes(searchTerm))
+    );
+
+    let totalCapital = 0;
+    let totalUnits = 0;
+
+    // Calcular capital global de todo el inventario (sin filtrar para que refleje el total real)
+    globalInventoryData.forEach(item => {
+        const stock = parseFloat(item.stock) || 0;
+        const price = parseFloat(item.price) || 0;
+        totalCapital += (stock * price);
+        totalUnits += stock;
+    });
+
+    if(totalCapitalEl) totalCapitalEl.innerText = `RD$ ${totalCapital.toFixed(2)}`;
+    if(totalUnitsEl) totalUnitsEl.innerText = `${totalUnits} unidades`;
+
+    filtered.forEach(item => {
+        const stock = parseFloat(item.stock) || 0;
+        const price = parseFloat(item.price) || 0;
+        const totalInvestment = stock * price;
+
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-800 hover:bg-gray-700/50';
+        tr.innerHTML = `
+            <td class="py-3 px-4 font-bold text-white">${item.name}</td>
+            <td class="py-3 px-4 text-retroFuchsia font-bold">${stock}</td>
+            <td class="py-3 px-4 text-gray-300">${item.unit}</td>
+            <td class="py-3 px-4 text-retroTurquoise">RD$ ${price.toFixed(2)}</td>
+            <td class="py-3 px-4 text-retroYellow font-bold">RD$ ${totalInvestment.toFixed(2)}</td>
+            <td class="py-3 px-4 text-center space-x-2">
+                <button onclick="restockItem('${item.id}', ${stock}, '${encodeURIComponent(item.name)}')" class="bg-retroTurquoise text-white px-2.5 py-1 rounded-lg text-xs font-bold hover:opacity-90">Reabastecer</button>
+                <button onclick="editInventoryItem('${item.id}', '${encodeURIComponent(item.name)}', ${stock}, ${price}, '${encodeURIComponent(item.unit)}')" class="bg-retroYellow text-retroPurple px-2.5 py-1 rounded-lg text-xs font-bold hover:opacity-90">Editar</button>
+                <button onclick="deleteInventoryItem('${item.id}')" class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold hover:opacity-90">Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Función para reabastecer stock (suma unidades a las que ya tienes)
+function restockItem(id, currentStock, encodedName) {
+    const itemName = decodeURIComponent(encodedName);
+    const qtyToAdd = prompt(`¿Cuántas unidades de "${itemName}" deseas agregar al stock actual (${currentStock})?`);
+    if (qtyToAdd !== null && !isNaN(qtyToAdd) && parseFloat(qtyToAdd) > 0) {
+        const added = parseFloat(qtyToAdd);
+        const newStock = currentStock + added;
+        
+        // Actualizar en Firestore
+        window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
+            .catch(error => console.error("Error al reabastecer:", error));
+    }
+}
+
+// Función para cargar datos al formulario al presionar Editar
+function editInventoryItem(id, encodedName, stock, price, encodedUnit) {
+    document.getElementById('editingInventoryId').value = id;
+    document.getElementById('invItemName').value = decodeURIComponent(encodedName);
+    document.getElementById('invItemStock').value = stock;
+    document.getElementById('invItemPrice').value = price;
+    document.getElementById('invItemUnit').value = decodeURIComponent(encodedUnit);
+    
+    const submitBtn = document.getElementById('invSubmitBtn');
+    if(submitBtn) submitBtn.innerText = "Actualizar Insumo";
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
 
             // Escuchar Gastos
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
