@@ -480,12 +480,19 @@
 
     window.updateModalPrice = function() {
       let total = window.currentBasePrice;
-      ['size', 'flavor', 'sugar', 'milk', 'cream'].forEach(key => {
+      ['size', 'flavor', 'sugar', 'milk', 'cream', 'breads', 'others'].forEach(key => {
         const sel = document.getElementById(`selected-prod-${key}`);
         if(sel) {
           total += parseFloat(sel.options[sel.selectedIndex].dataset.add || 0);
         }
       });
+
+      // Sumar los extras marcados en tiempo real
+      const checkedExtras = document.querySelectorAll('input[name="selected-prod-extras"]:checked');
+      checkedExtras.forEach(el => {
+        total += parseFloat(el.dataset.add || 0);
+      });
+
       document.getElementById('modal-prod-price').textContent = `$${total.toFixed(2)}`;
     };
 
