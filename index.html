@@ -51,7 +51,7 @@
   <div id="whatsapp-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 max-w-md w-full border-4 border-[#2E1065] shadow-[8px_8px_0px_#06B6D4] text-center space-y-4">
       <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl border-2 border-[#2E1065]">
-        🏦
+        ✅
       </div>
       <h3 class="font-retro font-extrabold text-2xl text-[#6B21A8]">¡Pedido Registrado (Pendiente)!</h3>
       <p class="text-xs text-gray-600 leading-relaxed">
@@ -102,7 +102,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
         <div class="lg:col-span-7 space-y-3">
           <div class="inline-flex items-center gap-2 bg-[#FFD600] text-[#2E1065] px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065]">
-            <span>📼 VIBRAS RETRO • SABOR ARTESANAL</span>
+            <span>✨ VIBRAS RETRO • SABOR ARTESANAL</span>
           </div>
           <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight">
             Disfruta el auténtico sabor en <span class="text-[#FFD600] underline decoration-[#06B6D4]">199X Coffee</span>
@@ -113,7 +113,7 @@
           <div class="bg-white text-[#1E1035] rounded-2xl p-5 border-3 border-[#2E1065] shadow-[6px_6px_0px_#06B6D4]">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-extrabold uppercase text-purple-700">Estado del Horario</span>
-              <span id="store-status-pill" class="px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065] bg-emerald-300 text-emerald-950">● Verificando...</span>
+              <span id="store-status-pill" class="px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065] bg-emerald-300 text-emerald-950">Verificando...</span>
             </div>
             <div class="bg-purple-50 rounded-xl p-3 border border-purple-200 mb-3">
               <p class="text-xs text-purple-700 font-semibold">Hora actual:</p>
@@ -122,11 +122,11 @@
             </div>
             <div class="space-y-1 text-xs font-semibold">
               <div class="flex justify-between py-1 border-b border-dashed border-purple-200">
-                <span>📅 Lunes a Sábado:</span>
+                <span>🕒 Lunes a Sábado:</span>
                 <span class="bg-[#FFD600] px-2 py-0.5 rounded border border-[#2E1065] font-extrabold">8:00 AM – 5:00 PM</span>
               </div>
               <div class="flex justify-between py-1">
-                <span>☀️ Domingos:</span>
+                <span>🕒 Domingos:</span>
                 <span class="bg-[#06B6D4] px-2 py-0.5 rounded border border-[#2E1065] font-extrabold">10:00 AM – 2:00 PM</span>
               </div>
             </div>
@@ -139,16 +139,15 @@
     <section class="mb-6">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl card-90s">
         <div class="flex flex-wrap gap-2">
-          <button onclick="filterStoreCategory('Todos')" data-cat="Todos" class="cat-filter-btn btn-90s bg-[#FFD600] text-[#1E1035] font-extrabold px-4 py-2 rounded-xl text-sm">✨ Todos</button>
-          <button onclick="filterStoreCategory('Desayunos')" data-cat="Desayunos" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">🥞 Desayunos</button>
+          <button onclick="filterStoreCategory('Todos')" data-cat="Todos" class="cat-filter-btn btn-90s bg-[#FFD600] text-[#1E1035] font-extrabold px-4 py-2 rounded-xl text-sm">🌟 Todos</button>
+          <button onclick="filterStoreCategory('Desayunos')" data-cat="Desayunos" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">🥐 Desayunos</button>
           <button onclick="filterStoreCategory('Postres')" data-cat="Postres" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">🍰 Postres</button>
-          <button onclick="filterStoreCategory('Bebidas')" data-cat="Bebidas" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">🥤 Bebidas</button>
+          <button onclick="filterStoreCategory('Bebidas')" data-cat="Bebidas" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">☕ Bebidas</button>
           <button onclick="filterStoreCategory('Sandwiches')" data-cat="Sandwiches" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">🥪 Sandwiches</button>
           <button onclick="filterStoreCategory('Especiales')" data-cat="Especiales" class="cat-filter-btn btn-90s bg-white text-[#1E1035] font-bold px-4 py-2 rounded-xl text-sm">⭐ Especiales</button>
         </div>
         <div class="relative w-full md:w-72">
-          <input type="text" id="store-search-input" oninput="renderStoreCatalog()" placeholder="Buscar tres leches, latte..." class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-medium focus:outline-none" />
-          <span class="absolute left-3 top-2.5">🔍</span>
+          <input type="text" id="store-search-input" oninput="renderStoreCatalog()" placeholder="🔍 Buscar tres leches, latte..." class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#2E1065] text-sm font-medium focus:outline-none" />
         </div>
       </div>
     </section>
@@ -160,12 +159,12 @@
       </div>
       <aside class="lg:col-span-4 bg-white rounded-3xl p-5 card-90s lg:sticky lg:top-24" id="checkout-sidebar">
         <div class="flex items-center justify-between pb-3 mb-4 border-b-2 border-[#2E1065]">
-          <h2 class="text-xl font-extrabold text-[#6B21A8]">🛒 Tu Pedido</h2>
+          <h2 class="text-xl font-extrabold text-[#6B21A8]">🛍️ Tu Pedido</h2>
           <span id="sidebar-cart-badge" class="bg-[#06B6D4] text-[#1E1035] font-extrabold text-xs px-2 py-1 rounded-full border border-[#2E1065]">0 items</span>
         </div>
         <div id="cart-items-list" class="space-y-3 max-h-56 overflow-y-auto mb-4 pr-1">
           <div class="text-center py-6 text-gray-500 text-sm">
-            <p class="text-3xl mb-1">☕</p>
+            <p class="text-3xl mb-1">🛒</p>
             <p class="font-semibold">Tu carrito está vacío</p>
           </div>
         </div>
@@ -189,7 +188,7 @@
           <div>
             <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Tipo de Servicio *</label>
             <select id="cust-delivery-type" onchange="updateCartTotal()" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs bg-purple-50 font-bold">
-             <option value="delivery">🛵 Envío a Domicilio (costo sujeto a evaluacion por whatsapp)</option>
+              <option value="delivery">🛵 Envío a Domicilio (costo sujeto a evaluación por WhatsApp)</option>
             </select>
           </div>
           <div class="grid grid-cols-2 gap-2">
@@ -206,7 +205,7 @@
           <div>
             <label class="block text-xs font-extrabold text-[#2E1065] mb-1">Método de Pago</label>
             <select id="cust-payment" class="w-full px-3 py-2 rounded-xl border-2 border-[#2E1065] text-xs bg-purple-50 font-bold">
-              <option value="Transferencia Bancaria">🏦 Transferencia Bancaria (Pendiente de verificación)</option>
+              <option value="Transferencia Bancaria">💳 Transferencia Bancaria (Pendiente de verificación)</option>
             </select>
           </div>
           <div>
@@ -223,10 +222,10 @@
   <div id="mobile-cart-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4 lg:hidden">
     <div class="bg-white rounded-3xl p-5 max-w-md w-full border-3 border-[#2E1065] shadow-[6px_6px_0px_#FFD600]">
       <div class="flex justify-between items-center mb-3">
-        <h3 class="font-extrabold text-lg text-[#6B21A8]">🛒 Tu Pedido</h3>
+        <h3 class="font-extrabold text-lg text-[#6B21A8]">🛍️ Tu Pedido</h3>
         <button onclick="toggleCartModal(false)" class="px-3 py-1 rounded bg-gray-200 text-xs font-bold">Cerrar ✕</button>
       </div>
-      <button onclick="scrollToCheckout()" class="w-full btn-90s bg-[#EC4899] text-white font-extrabold py-3 rounded-2xl text-sm">Ir al Formulario 👇</button>
+      <button onclick="scrollToCheckout()" class="w-full btn-90s bg-[#EC4899] text-white font-extrabold py-3 rounded-2xl text-sm">Ir al Formulario 📝</button>
     </div>
   </div>
 
@@ -278,10 +277,10 @@
         const isOpen = day === 0 ? (mins >= 600 && mins < 840) : (mins >= 480 && mins < 1020);
         const pill = document.getElementById('store-status-pill');
         if (isOpen) {
-          pill.textContent = '● ABIERTO AHORA';
+          pill.textContent = '🟢 ABIERTO AHORA';
           pill.className = 'px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065] bg-[#06B6D4] text-[#1E1035]';
         } else {
-          pill.textContent = '● CERRADO (PROGRAMA TU PEDIDO)';
+          pill.textContent = '🌙 CERRADO (PROGRAMA TU PEDIDO)';
           pill.className = 'px-3 py-1 rounded-full text-xs font-extrabold border-2 border-[#2E1065] bg-[#FFD600] text-[#1E1035]';
         }
       }, 1000);
@@ -327,38 +326,50 @@
     window.renderStoreCatalog = function() {
       const grid = document.getElementById('store-products-grid');
       const search = (document.getElementById('store-search-input')?.value || '').toLowerCase();
-      const filtered = state.products.filter(p => (state.selectedCategory === 'Todos' || p.category === state.selectedCategory) && ((p.name || '').toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search)));
+      
+      // Filtrar: Ignorar los ocultos por completo
+      const filtered = state.products.filter(p => {
+        if (p.status === 'oculto') return false;
+        return (state.selectedCategory === 'Todos' || p.category === state.selectedCategory) && ((p.name || '').toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search));
+      });
 
       if (filtered.length === 0) {
         grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-3xl card-90s text-center"><p class="font-extrabold text-[#6B21A8]">No hay productos disponibles en esta categoría.</p></div>`;
         return;
       }
 
-      grid.innerHTML = filtered.map(p => `
-        <div class="bg-white rounded-3xl overflow-hidden card-90s flex flex-col justify-between ${p.available === false ? 'opacity-60' : ''}">
+      grid.innerHTML = filtered.map(p => {
+        const isAgotado = p.status === 'agotado';
+
+        return `
+        <div class="bg-white rounded-3xl overflow-hidden card-90s flex flex-col justify-between ${isAgotado ? 'opacity-60 border-red-500' : ''}">
           <div>
-            <div class="relative h-44 bg-purple-100 border-b-2 border-[#2E1065] cursor-pointer" onclick="openProductModal('${p.id}')">
-<img src="${p.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'" class="w-full h-full object-contain bg-gray-100 hover:scale-105 transition duration-300" />  
-<span class="absolute bottom-3 right-3 bg-[#2E1065] text-[#FFD600] px-3 py-1 rounded-xl font-retro font-extrabold text-sm border border-[#FFD600]">$${Number(p.price || 0).toFixed(2)}</span>
+            <div class="relative h-44 bg-purple-100 border-b-2 border-[#2E1065] ${isAgotado ? '' : 'cursor-pointer'}" ${isAgotado ? '' : `onclick="openProductModal('${p.id}')"`}>
+              <img src="${p.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'" class="w-full h-full object-contain bg-gray-100 hover:scale-105 transition duration-300" />  
+              <span class="absolute bottom-3 right-3 bg-[#2E1065] text-[#FFD600] px-3 py-1 rounded-xl font-retro font-extrabold text-sm border border-[#FFD600]">$${Number(p.price || 0).toFixed(2)}</span>
+              ${isAgotado ? '<span class="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-xl font-extrabold text-xs border border-[#2E1065] shadow uppercase">¡Agotado!</span>' : ''}
             </div>
             <div class="p-4">
               <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]">${p.category || 'General'}</span>
-              <h3 onclick="openProductModal('${p.id}')" class="font-extrabold text-base text-[#1E1035] mt-1 cursor-pointer hover:text-[#6B21A8] transition">${p.name}</h3>
+              <h3 ${isAgotado ? '' : `onclick="openProductModal('${p.id}')"`} class="font-extrabold text-base text-[#1E1035] mt-1 ${isAgotado ? '' : 'cursor-pointer hover:text-[#6B21A8]'} transition">${p.name}</h3>
               <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.description || 'Sin descripción detallada.'}</p>
-              
             </div>
           </div>
           <div class="p-4 pt-0">
-            ${p.available !== false ? `<button onclick="openProductModal('${p.id}')" class="w-full btn-90s bg-[#6B21A8] text-white font-extrabold py-2 rounded-xl text-xs">+ Ver Opciones / Agregar</button>` : `<button disabled class="w-full bg-gray-200 text-gray-500 py-2 rounded-xl text-xs font-bold">Agotado</button>`}
+            ${!isAgotado 
+              ? `<button onclick="openProductModal('${p.id}')" class="w-full btn-90s bg-[#6B21A8] text-white font-extrabold py-2 rounded-xl text-xs">+ Ver Opciones / Agregar</button>` 
+              : `<button disabled class="w-full bg-gray-200 text-gray-500 py-2 rounded-xl text-xs font-bold cursor-not-allowed">No disponible temporalmente</button>`
+            }
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     };
 
     // Funciones para el Modal de Detalle y Opciones Dinámicas Completas
     window.openProductModal = function(id) {
       const prod = state.products.find(p => p.id === id);
-      if(!prod) return;
+      if(!prod || prod.status === 'agotado') return;
       
       document.getElementById('modal-prod-img').src = prod.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500';
       document.getElementById('modal-prod-cat').textContent = prod.category || 'General';
@@ -371,7 +382,6 @@
       window.currentBasePrice = Number(prod.price || 0);
       document.getElementById('modal-prod-price').textContent = `$${window.currentBasePrice.toFixed(2)}`;
 
-      // Función auxiliar para generar selectores dinámicos con formato Nombre:PrecioAdicional
       const createOptionSelect = (fieldKey, labelText, rawData) => {
         if (!rawData || rawData.trim() === '') return null;
         const options = rawData.split(',').map(item => {
@@ -388,7 +398,6 @@
         return html;
       };
 
-      // Inyectar selectores si están definidos en el producto
       const sizeHtml = createOptionSelect('size', 'Selecciona el Tamaño', prod.sizes);
       const flavorHtml = createOptionSelect('flavor', 'Selecciona el Sabor', prod.flavors);
       const sugarHtml = createOptionSelect('sugar', 'Azúcar de Preferencia', prod.sugar);
@@ -405,16 +414,14 @@
       if (breadsHtml) optContainer.innerHTML += breadsHtml;
       if (othersHtml) optContainer.innerHTML += othersHtml;
 
-      // Generar checkboxes para EXTRAS (Múltiple selección)
-      let extrasOptions = [];
       if (prod.extras && prod.extras.trim() !== '') {
-        extrasOptions = prod.extras.split(',').map(e => {
+        const extrasOptions = prod.extras.split(',').map(e => {
           const parts = e.split(':');
           return { name: parts[0].trim(), addPrice: parts[1] ? parseFloat(parts[1]) : 0 };
         });
 
         let htmlExtras = `<div class="text-xs mt-2 border-t pt-2 border-purple-200"><label class="block font-extrabold text-[#2E1065] mb-1">Extras (Selección múltiple):</label><div class="space-y-1 max-h-32 overflow-y-auto bg-purple-50 p-2 rounded-xl border-2 border-[#2E1065]">`;
-        extrasOptions.forEach((opt, index) => {
+        extrasOptions.forEach((opt) => {
           const priceText = opt.addPrice > 0 ? ` (+ $${opt.addPrice.toFixed(2)})` : '';
           htmlExtras += `<label class="flex items-center gap-2 cursor-pointer font-bold"><input type="checkbox" name="selected-prod-extras" value="${opt.name}" data-add="${opt.addPrice}" onchange="updateModalPrice()" class="w-4 h-4 rounded border-2 border-[#2E1065] text-[#6B21A8]"> ${opt.name}${priceText}</label>`;
         });
@@ -434,7 +441,6 @@
         const breadsSelect = document.getElementById('selected-prod-breads');
         const othersSelect = document.getElementById('selected-prod-others');
         
-        // Obtener todos los extras marcados
         const checkedExtras = Array.from(document.querySelectorAll('input[name="selected-prod-extras"]:checked'));
         const selectedExtrasNames = checkedExtras.map(el => el.value).join(', ');
 
@@ -455,7 +461,6 @@
         if(breadsSelect) finalPrice += parseFloat(breadsSelect.options[breadsSelect.selectedIndex].dataset.add || 0);
         if(othersSelect) finalPrice += parseFloat(othersSelect.options[othersSelect.selectedIndex].dataset.add || 0);
         
-        // Sumar el precio de cada extra seleccionado
         checkedExtras.forEach(el => {
           finalPrice += parseFloat(el.dataset.add || 0);
         });
@@ -487,7 +492,6 @@
         }
       });
 
-      // Sumar los extras marcados en tiempo real
       const checkedExtras = document.querySelectorAll('input[name="selected-prod-extras"]:checked');
       checkedExtras.forEach(el => {
         total += parseFloat(el.dataset.add || 0);
@@ -504,7 +508,7 @@
 
     window.addToCartWithOptions = function(id, opts, customPrice) {
       const prod = state.products.find(p => p.id === id);
-      if (!prod) return;
+      if (!prod || prod.status === 'agotado') return;
       
       const optString = `${opts.size || ''}-${opts.flavor || ''}-${opts.sugar || ''}-${opts.milk || ''}-${opts.cream || ''}`;
       const cartKey = `${id}-${optString}`;
@@ -522,7 +526,7 @@
         state.cart.push({ cartKey, id: prod.id, name: displayName, price: customPrice, qty: 1 });
       }
       renderCart();
-      showToast(`✨ Agregado: ${prod.name}`);
+      showToast(`🛒 Agregado: ${prod.name}`);
     };
 
     window.updateCartQty = function(cartKey, delta) {
@@ -550,7 +554,7 @@
       document.getElementById('cart-total').textContent = `$${totalAmount.toFixed(2)}`;
 
       if (state.cart.length === 0) {
-        list.innerHTML = `<div class="text-center py-6 text-gray-500 text-sm"><p class="text-3xl mb-1">☕</p><p class="font-semibold">Tu carrito está vacío</p></div>`;
+        list.innerHTML = `<div class="text-center py-6 text-gray-500 text-sm"><p class="text-3xl mb-1">🛒</p><p class="font-semibold">Tu carrito está vacío</p></div>`;
         return;
       }
       list.innerHTML = state.cart.map(i => `
