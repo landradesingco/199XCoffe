@@ -579,7 +579,6 @@ window.deleteInventoryItem = async function(id) {
                 globalExpenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderAccounting();
             });
-        }
 
         // Renderizar Órdenes con Filtros y Botón Eliminar
         window.renderOrders = function() {
