@@ -674,7 +674,7 @@
             reader.readAsDataURL(file);
         }
 
-        async function saveProduct(e) {
+       async function saveProduct(e) {
     e.preventDefault();
     const statusMsg = document.getElementById('formStatusMsg');
     if(statusMsg) statusMsg.innerText = "Procesando...";
@@ -686,16 +686,19 @@
     const description = document.getElementById('prodDesc').value;
     const sizes = document.getElementById('prodSizes').value.trim();
     const flavors = document.getElementById('prodFlavors').value.trim();
-    
-    // 👈 AÑADE ESTAS TRES LÍNEAS NUEVAS:
     const sugar = document.getElementById('prodSugar').value.trim();
     const milk = document.getElementById('prodMilk').value.trim();
     const cream = document.getElementById('prodCream').value.trim();
     
+    // 👇 CAPTURA LOS TRES NUEVOS CAMPOS
+    const breads = document.getElementById('prodBreads').value.trim();
+    const others = document.getElementById('prodOthers').value.trim();
+    const extras = document.getElementById('prodExtras').value.trim();
+    
     const fileInput = document.getElementById('prodImageFile');
 
-    // 👈 INCLúYELOS EN EL OBJETO:
-    const productData = { name, category, price, description, sizes, flavors, sugar, milk, cream };
+    // 👇 INCLúYELOS EN EL OBJETO QUE SE GUARDA EN FIREBASE
+    const productData = { name, category, price, description, sizes, flavors, sugar, milk, cream, breads, others, extras };
 
     if(fileInput.files && fileInput.files[0]) {
         compressImage(fileInput.files[0], async function(compressedUrl) {
