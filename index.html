@@ -394,12 +394,33 @@
       const sugarHtml = createOptionSelect('sugar', 'Azúcar de Preferencia', prod.sugar);
       const milkHtml = createOptionSelect('milk', 'Tipo de Leche', prod.milk);
       const creamHtml = createOptionSelect('cream', 'Cremas', prod.cream);
+      const breadsHtml = createOptionSelect('breads', 'Selecciona el Pan', prod.breads);
+      const othersHtml = createOptionSelect('others', 'Opciones Adicionales', prod.others);
 
       if (sizeHtml) optContainer.innerHTML += sizeHtml;
       if (flavorHtml) optContainer.innerHTML += flavorHtml;
       if (sugarHtml) optContainer.innerHTML += sugarHtml;
       if (milkHtml) optContainer.innerHTML += milkHtml;
       if (creamHtml) optContainer.innerHTML += creamHtml;
+      if (breadsHtml) optContainer.innerHTML += breadsHtml;
+      if (othersHtml) optContainer.innerHTML += othersHtml;
+
+      // Generar checkboxes para EXTRAS (Múltiple selección)
+      let extrasOptions = [];
+      if (prod.extras && prod.extras.trim() !== '') {
+        extrasOptions = prod.extras.split(',').map(e => {
+          const parts = e.split(':');
+          return { name: parts[0].trim(), addPrice: parts[1] ? parseFloat(parts[1]) : 0 };
+        });
+
+        let htmlExtras = `<div class="text-xs mt-2 border-t pt-2 border-purple-200"><label class="block font-extrabold text-[#2E1065] mb-1">Extras (Selección múltiple):</label><div class="space-y-1 max-h-32 overflow-y-auto bg-purple-50 p-2 rounded-xl border-2 border-[#2E1065]">`;
+        extrasOptions.forEach((opt, index) => {
+          const priceText = opt.addPrice > 0 ? ` (+ $${opt.addPrice.toFixed(2)})` : '';
+          htmlExtras += `<label class="flex items-center gap-2 cursor-pointer font-bold"><input type="checkbox" name="selected-prod-extras" value="${opt.name}" data-add="${opt.addPrice}" onchange="updateModalPrice()" class="w-4 h-4 rounded border-2 border-[#2E1065] text-[#6B21A8]"> ${opt.name}${priceText}</label>`;
+        });
+        htmlExtras += `</div></div>`;
+        optContainer.innerHTML += htmlExtras;
+      }
 
       updateModalPrice();
 
@@ -410,12 +431,20 @@
         const sugarSelect = document.getElementById('selected-prod-sugar');
         const milkSelect = document.getElementById('selected-prod-milk');
         const creamSelect = document.getElementById('selected-prod-cream');
+        const breadsSelect = document.getElementById('selected-prod-breads');
+        const othersSelect = document.getElementById('selected-prod-others');
+        
+        // Obtener todos los extras marcados
+        const checkedExtras = Array.from(document.querySelectorAll('input[name="selected-prod-extras"]:checked'));
+        const selectedExtrasNames = checkedExtras.map(el => el.value).join(', ');
 
         const selectedSize = sizeSelect ? sizeSelect.value : '';
         const selectedFlavor = flavorSelect ? flavorSelect.value : '';
         const selectedSugar = sugarSelect ? sugarSelect.value : '';
         const selectedMilk = milkSelect ? milkSelect.value : '';
         const selectedCream = creamSelect ? creamSelect.value : '';
+        const selectedBreads = breadsSelect ? breadsSelect.value : '';
+        const selectedOthers = othersSelect ? othersSelect.value : '';
 
         let finalPrice = window.currentBasePrice;
         if(sizeSelect) finalPrice += parseFloat(sizeSelect.options[sizeSelect.selectedIndex].dataset.add || 0);
@@ -423,8 +452,24 @@
         if(sugarSelect) finalPrice += parseFloat(sugarSelect.options[sugarSelect.selectedIndex].dataset.add || 0);
         if(milkSelect) finalPrice += parseFloat(milkSelect.options[milkSelect.selectedIndex].dataset.add || 0);
         if(creamSelect) finalPrice += parseFloat(creamSelect.options[creamSelect.selectedIndex].dataset.add || 0);
+        if(breadsSelect) finalPrice += parseFloat(breadsSelect.options[breadsSelect.selectedIndex].dataset.add || 0);
+        if(othersSelect) finalPrice += parseFloat(othersSelect.options[othersSelect.selectedIndex].dataset.add || 0);
+        
+        // Sumar el precio de cada extra seleccionado
+        checkedExtras.forEach(el => {
+          finalPrice += parseFloat(el.dataset.add || 0);
+        });
 
-        addToCartWithOptions(prod.id, { size: selectedSize, flavor: selectedFlavor, sugar: selectedSugar, milk: selectedMilk, cream: selectedCream }, finalPrice);
+        addToCartWithOptions(prod.id, { 
+          size: selectedSize, 
+          flavor: selectedFlavor, 
+          sugar: selectedSugar, 
+          milk: selectedMilk, 
+          cream: selectedCream, 
+          breads: selectedBreads, 
+          others: selectedOthers, 
+          extras: selectedExtrasNames 
+        }, finalPrice);
         closeProductModal();
       };
 
