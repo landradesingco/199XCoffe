@@ -730,8 +730,8 @@
             }
         }
 
-        // 👈 Añade los parámetros sugar, milk, cream al final:
-function editProduct(id, name, category, price, description, sizes, flavors, sugar, milk, cream) {
+        // 👇 ACTUALIZA LOS PARÁMETROS PARA RECIBIR LOS NUEVOS CAMPOS
+function editProduct(id, name, category, price, description, sizes, flavors, sugar, milk, cream, breads, others, extras) {
     document.getElementById('editingProductId').value = id;
     document.getElementById('prodName').value = decodeURIComponent(name);
     document.getElementById('prodCategory').value = category;
@@ -739,16 +739,18 @@ function editProduct(id, name, category, price, description, sizes, flavors, sug
     document.getElementById('prodDesc').value = decodeURIComponent(description || '');
     document.getElementById('prodSizes').value = decodeURIComponent(sizes || '');
     document.getElementById('prodFlavors').value = decodeURIComponent(flavors || '');
-    
-    // 👈 AÑADE ESTAS TRES LÍNEAS PARA QUE SE LLENEN AL EDITAR:
     document.getElementById('prodSugar').value = decodeURIComponent(sugar || '');
     document.getElementById('prodMilk').value = decodeURIComponent(milk || '');
     document.getElementById('prodCream').value = decodeURIComponent(cream || '');
+    
+    // 👇 ASIGNA LOS VALORES A LOS NUEVOS INPUTS AL EDITAR
+    document.getElementById('prodBreads').value = decodeURIComponent(breads || '');
+    document.getElementById('prodOthers').value = decodeURIComponent(others || '');
+    document.getElementById('prodExtras').value = decodeURIComponent(extras || '');
 
     document.getElementById('menuFormTitle').innerText = 'Editando Producto';
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
-
         async function deleteProduct(id) {
             if(confirm('¿Seguro que deseas eliminar este producto?')) {
                 await window.deleteDoc(window.doc(window.db, "199x_products", id));
