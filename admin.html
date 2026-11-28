@@ -885,16 +885,32 @@ function editProduct(id, name, category, price, description, sizes, flavors, sug
         }
 
         async function saveInventoryItem(e) {
-            e.preventDefault();
-            const name = document.getElementById('invItemName').value;
-            const stock = parseFloat(document.getElementById('invItemStock').value);
-            const unit = document.getElementById('invItemUnit').value;
+    e.preventDefault();
+    const id = document.getElementById('editingInventoryId').value;
+    const name = document.getElementById('invItemName').value.trim();
+    const stock = parseFloat(document.getElementById('invItemStock').value);
+    const price = parseFloat(document.getElementById('invItemPrice').value);
+    const unit = document.getElementById('invItemUnit').value.trim();
 
-            await window.addDoc(window.collection(window.db, "199x_inventory"), { name, stock, unit });
-            document.getElementById('invItemName').value = '';
-            document.getElementById('invItemStock').value = '';
-            document.getElementById('invItemUnit').value = '';
+    const itemData = { name, stock, price, unit };
+
+    try {
+        if (id) {
+            // Actualizar existente
+            await window.updateDoc(window.doc(db, "199x_inventory", id), itemData);
+            document.getElementById('editingInventoryId').value = '';
+            document.getElementById('invSubmitBtn').innerText = "Guardar Insumo";
+        } else {
+            // Crear nuevo
+            await window.addDoc(window.collection(db, "199x_inventory"), itemData);
         }
+        // Limpiar formulario
+        e.target.reset();
+    } catch (error) {
+        console.error("Error al guardar en inventario:", error);
+        alert("Hubo un error al guardar el insumo.");
+    }
+}
 
         async function deleteInventoryItem(id) {
             if(confirm('¿Eliminar insumo?')) {
