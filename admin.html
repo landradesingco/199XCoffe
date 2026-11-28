@@ -404,20 +404,20 @@
                 renderAdminMenu();
             });
 
-        // Variable global de inventario
-let globalInventoryData = [];
+       // Asegurar funciones globales para el inventario
+window.globalInventoryData = [];
 
 // Escuchar Inventario desde Firebase
 window.onSnapshot(window.collection(db, "199x_inventory"), (snapshot) => {
-    globalInventoryData = [];
+    window.globalInventoryData = [];
     snapshot.forEach(docSnap => {
-        globalInventoryData.push({ id: docSnap.id, ...docSnap.data() });
+        window.globalInventoryData.push({ id: docSnap.id, ...docSnap.data() });
     });
-    renderInventoryTable();
+    window.renderInventoryTable();
 });
 
 // Función para renderizar y filtrar la tabla con sus respectivos totales
-function renderInventoryTable() {
+window.renderInventoryTable = function() {
     const tbody = document.getElementById('inventoryTableBody');
     const searchInput = document.getElementById('inventorySearchInput');
     const totalCapitalEl = document.getElementById('totalInventoryCapital');
@@ -426,9 +426,9 @@ function renderInventoryTable() {
     if(!tbody) return;
     tbody.innerHTML = '';
 
-   const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     
-    let filtered = globalInventoryData.filter(item => 
+    let filtered = window.globalInventoryData.filter(item => 
         (item.name && item.name.toLowerCase().includes(searchTerm)) ||
         (item.unit && item.unit.toLowerCase().includes(searchTerm))
     );
@@ -436,8 +436,7 @@ function renderInventoryTable() {
     let totalCapital = 0;
     let totalUnits = 0;
     
-    // Calcular capital global de todo el inventario (sin filtrar para que refleje el total real)
-   globalInventoryData.forEach(item => {
+    window.globalInventoryData.forEach(item => {
         const stock = parseFloat(item.stock) || 0;
         const price = parseFloat(item.price) || 0;
         totalCapital += (stock * price);
@@ -468,10 +467,10 @@ function renderInventoryTable() {
         `;
         tbody.appendChild(tr);
     });
-}
+};
             
 // Función para reabastecer stock
-function restockItem(id, currentStock, encodedName) {
+window.restockItem = function(id, currentStock, encodedName) {
     const itemName = decodeURIComponent(encodedName);
     const qtyToAdd = prompt(`¿Cuántas unidades de "${itemName}" deseas agregar al stock actual (${currentStock})?`);
     if (qtyToAdd !== null && !isNaN(qtyToAdd) && parseFloat(qtyToAdd) > 0) {
@@ -480,10 +479,10 @@ function restockItem(id, currentStock, encodedName) {
         window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
             .catch(error => console.error("Error al reabastecer:", error));
     }
-}
+};
 
 // Función para cargar datos al formulario al presionar Editar
-function editInventoryItem(id, encodedName, stock, price, encodedUnit) {
+window.editInventoryItem = function(id, encodedName, stock, price, encodedUnit) {
     document.getElementById('editingInventoryId').value = id;
     document.getElementById('invItemName').value = decodeURIComponent(encodedName);
     document.getElementById('invItemStock').value = stock;
@@ -493,10 +492,10 @@ function editInventoryItem(id, encodedName, stock, price, encodedUnit) {
     const submitBtn = document.getElementById('invSubmitBtn');
     if(submitBtn) submitBtn.innerText = "Actualizar Insumo";
     window.scrollTo({top: 0, behavior: 'smooth'});
-}
+};
 
 // Función para guardar o actualizar
-async function saveInventoryItem(e) {
+window.saveInventoryItem = async function(e) {
     e.preventDefault();
     const id = document.getElementById('editingInventoryId').value;
     const name = document.getElementById('invItemName').value.trim();
@@ -519,15 +518,17 @@ async function saveInventoryItem(e) {
         console.error("Error al guardar en inventario:", error);
         alert("Hubo un error al guardar el insumo.");
     }
-}
+};
 
 // Función para eliminar
-async function deleteInventoryItem(id) {
+window.deleteInventoryItem = async function(id) {
     if(confirm('¿Eliminar insumo?')) {
         await window.deleteDoc(window.doc(window.db, "199x_inventory", id));
     }
-}
-            // Escuchar Gastos
+};
+
+
+        // escuchar gastos
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
                 globalExpenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderAccounting();
