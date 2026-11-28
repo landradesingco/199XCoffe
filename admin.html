@@ -404,7 +404,7 @@
                 renderAdminMenu();
             });
 
-           // Variable global para almacenar los datos del inventario y usarlos en el filtro y totales
+        // Variable global de inventario
 let globalInventoryData = [];
 
 // Escuchar Inventario desde Firebase
@@ -426,7 +426,7 @@ function renderInventoryTable() {
     if(!tbody) return;
     tbody.innerHTML = '';
 
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+   const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     
     let filtered = globalInventoryData.filter(item => 
         (item.name && item.name.toLowerCase().includes(searchTerm)) ||
@@ -435,15 +435,15 @@ function renderInventoryTable() {
 
     let totalCapital = 0;
     let totalUnits = 0;
-
+    
     // Calcular capital global de todo el inventario (sin filtrar para que refleje el total real)
-    globalInventoryData.forEach(item => {
+   globalInventoryData.forEach(item => {
         const stock = parseFloat(item.stock) || 0;
         const price = parseFloat(item.price) || 0;
         totalCapital += (stock * price);
         totalUnits += stock;
     });
-
+    
     if(totalCapitalEl) totalCapitalEl.innerText = `RD$ ${totalCapital.toFixed(2)}`;
     if(totalUnitsEl) totalUnitsEl.innerText = `${totalUnits} unidades`;
 
@@ -469,16 +469,14 @@ function renderInventoryTable() {
         tbody.appendChild(tr);
     });
 }
-
-// Función para reabastecer stock (suma unidades a las que ya tienes)
+            
+// Función para reabastecer stock
 function restockItem(id, currentStock, encodedName) {
     const itemName = decodeURIComponent(encodedName);
     const qtyToAdd = prompt(`¿Cuántas unidades de "${itemName}" deseas agregar al stock actual (${currentStock})?`);
     if (qtyToAdd !== null && !isNaN(qtyToAdd) && parseFloat(qtyToAdd) > 0) {
         const added = parseFloat(qtyToAdd);
         const newStock = currentStock + added;
-        
-        // Actualizar en Firestore
         window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
             .catch(error => console.error("Error al reabastecer:", error));
     }
@@ -497,6 +495,38 @@ function editInventoryItem(id, encodedName, stock, price, encodedUnit) {
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
+// Función para guardar o actualizar
+async function saveInventoryItem(e) {
+    e.preventDefault();
+    const id = document.getElementById('editingInventoryId').value;
+    const name = document.getElementById('invItemName').value.trim();
+    const stock = parseFloat(document.getElementById('invItemStock').value);
+    const price = parseFloat(document.getElementById('invItemPrice').value);
+    const unit = document.getElementById('invItemUnit').value.trim();
+
+    const itemData = { name, stock, price, unit };
+
+    try {
+        if (id) {
+            await window.updateDoc(window.doc(db, "199x_inventory", id), itemData);
+            document.getElementById('editingInventoryId').value = '';
+            document.getElementById('invSubmitBtn').innerText = "Guardar Insumo";
+        } else {
+            await window.addDoc(window.collection(db, "199x_inventory"), itemData);
+        }
+        e.target.reset();
+    } catch (error) {
+        console.error("Error al guardar en inventario:", error);
+        alert("Hubo un error al guardar el insumo.");
+    }
+}
+
+// Función para eliminar
+async function deleteInventoryItem(id) {
+    if(confirm('¿Eliminar insumo?')) {
+        await window.deleteDoc(window.doc(window.db, "199x_inventory", id));
+    }
+}
             // Escuchar Gastos
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
                 globalExpenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
