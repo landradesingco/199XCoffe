@@ -338,8 +338,8 @@
         <div class="bg-white rounded-3xl overflow-hidden card-90s flex flex-col justify-between ${p.available === false ? 'opacity-60' : ''}">
           <div>
             <div class="relative h-44 bg-purple-100 border-b-2 border-[#2E1065] cursor-pointer" onclick="openProductModal('${p.id}')">
-              <img src="${p.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
-              <span class="absolute bottom-3 right-3 bg-[#2E1065] text-[#FFD600] px-3 py-1 rounded-xl font-retro font-extrabold text-sm border border-[#FFD600]">$${Number(p.price || 0).toFixed(2)}</span>
+<img src="${p.image || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'}" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500'" class="w-full h-full object-contain bg-gray-100 hover:scale-105 transition duration-300" />  
+<span class="absolute bottom-3 right-3 bg-[#2E1065] text-[#FFD600] px-3 py-1 rounded-xl font-retro font-extrabold text-sm border border-[#FFD600]">$${Number(p.price || 0).toFixed(2)}</span>
             </div>
             <div class="p-4">
               <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-[#6B21A8]">${p.category || 'General'}</span>
