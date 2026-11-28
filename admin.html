@@ -404,7 +404,7 @@
                 renderAdminMenu();
             });
 
-       // Asegurar funciones globales para el inventario
+  // Asegurar funciones globales para el inventario
 window.globalInventoryData = [];
 
 // Escuchar Inventario desde Firebase
@@ -459,17 +459,18 @@ window.renderInventoryTable = function() {
             <td class="py-3 px-4 text-gray-300">${item.unit}</td>
             <td class="py-3 px-4 text-retroTurquoise">RD$ ${price.toFixed(2)}</td>
             <td class="py-3 px-4 text-retroYellow font-bold">RD$ ${totalInvestment.toFixed(2)}</td>
-            <td class="py-3 px-4 text-center space-x-2">
-                <button onclick="restockItem('${item.id}', ${stock}, '${encodeURIComponent(item.name)}')" class="bg-retroTurquoise text-white px-2.5 py-1 rounded-lg text-xs font-bold hover:opacity-90">Reabastecer</button>
-                <button onclick="editInventoryItem('${item.id}', '${encodeURIComponent(item.name)}', ${stock}, ${price}, '${encodeURIComponent(item.unit)}')" class="bg-retroYellow text-retroPurple px-2.5 py-1 rounded-lg text-xs font-bold hover:opacity-90">Editar</button>
-                <button onclick="deleteInventoryItem('${item.id}')" class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold hover:opacity-90">Eliminar</button>
+            <td class="py-3 px-4 text-center space-x-1">
+                <button onclick="restockItem('${item.id}', ${stock}, '${encodeURIComponent(item.name)}')" class="bg-retroTurquoise text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90" title="Sumar stock">➕</button>
+                <button onclick="deductStock('${item.id}', ${stock}, '${encodeURIComponent(item.name)}')" class="bg-orange-500 text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90" title="Descontar stock">➖</button>
+                <button onclick="editInventoryItem('${item.id}', '${encodeURIComponent(item.name)}', ${stock}, ${price}, '${encodeURIComponent(item.unit)}')" class="bg-retroYellow text-retroPurple px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90">Editar</button>
+                <button onclick="deleteInventoryItem('${item.id}')" class="bg-red-600 text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90">Eliminar</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 };
             
-// Función para reabastecer stock
+// Función para reabastecer stock (Sumar)
 window.restockItem = function(id, currentStock, encodedName) {
     const itemName = decodeURIComponent(encodedName);
     const qtyToAdd = prompt(`¿Cuántas unidades de "${itemName}" deseas agregar al stock actual (${currentStock})?`);
@@ -478,6 +479,18 @@ window.restockItem = function(id, currentStock, encodedName) {
         const newStock = currentStock + added;
         window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
             .catch(error => console.error("Error al reabastecer:", error));
+    }
+};
+
+// 👇 NUEVA FUNCIÓN: Para descontar stock (Restar lo gastado)
+window.deductStock = function(id, currentStock, encodedName) {
+    const itemName = decodeURIComponent(encodedName);
+    const qtyToDeduct = prompt(`¿Cuántas unidades de "${itemName}" se han gastado/utilizado? (Stock actual: ${currentStock})`);
+    if (qtyToDeduct !== null && !isNaN(qtyToDeduct) && parseFloat(qtyToDeduct) > 0) {
+        const deducted = parseFloat(qtyToDeduct);
+        const newStock = Math.max(0, currentStock - deducted); // Evita que baje de 0
+        window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
+            .catch(error => console.error("Error al descontar stock:", error));
     }
 };
 
@@ -526,7 +539,6 @@ window.deleteInventoryItem = async function(id) {
         await window.deleteDoc(window.doc(window.db, "199x_inventory", id));
     }
 };
-
 
         // escuchar gastos
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
