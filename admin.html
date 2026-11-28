@@ -454,6 +454,7 @@ window.renderInventoryTable = function() {
     if(totalUnitsEl) totalUnitsEl.innerText = `${totalUnits} unidades`;
 
     filtered.forEach(item => {
+        const initialStock = item.initialStock !== undefined ? item.initialStock : (parseFloat(item.stock) || 0);
         const stock = parseFloat(item.stock) || 0;
         const price = parseFloat(item.price) || 0;
         const totalInvestment = stock * price;
@@ -462,6 +463,7 @@ window.renderInventoryTable = function() {
         tr.className = 'border-b border-gray-800 hover:bg-gray-700/50';
         tr.innerHTML = `
             <td class="py-3 px-4 font-bold text-white">${item.name}</td>
+            <td class="py-3 px-4 text-gray-400 font-bold">${initialStock}</td>
             <td class="py-3 px-4 text-retroFuchsia font-bold">${stock}</td>
             <td class="py-3 px-4 text-gray-300">${item.unit}</td>
             <td class="py-3 px-4 text-retroTurquoise">RD$ ${price.toFixed(2)}</td>
@@ -469,15 +471,15 @@ window.renderInventoryTable = function() {
             <td class="py-3 px-4 text-center space-x-1">
                 <button onclick="restockItem('${item.id}', ${stock}, '${encodeURIComponent(item.name)}')" class="bg-retroTurquoise text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90" title="Sumar stock">➕</button>
                 <button onclick="deductStock('${item.id}', ${stock}, '${encodeURIComponent(item.name)}')" class="bg-orange-500 text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90" title="Descontar stock">➖</button>
-                <button onclick="editInventoryItem('${item.id}', '${encodeURIComponent(item.name)}', ${stock}, ${price}, '${encodeURIComponent(item.unit)}')" class="bg-retroYellow text-retroPurple px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90">Editar</button>
+                <button onclick="editInventoryItem('${item.id}', '${encodeURIComponent(item.name)}', ${initialStock}, ${stock}, ${price}, '${encodeURIComponent(item.unit)}')" class="bg-retroYellow text-retroPurple px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90">Editar</button>
                 <button onclick="deleteInventoryItem('${item.id}')" class="bg-red-600 text-white px-2 py-1 rounded-lg text-xs font-bold hover:opacity-90">Eliminar</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 };
-            
-// Función para reabastecer stock (Sumar)
+
+// Función para reabastecer stock (Suma al stock actual)
 window.restockItem = function(id, currentStock, encodedName) {
     const itemName = decodeURIComponent(encodedName);
     const qtyToAdd = prompt(`¿Cuántas unidades de "${itemName}" deseas agregar al stock actual (${currentStock})?`);
@@ -489,23 +491,42 @@ window.restockItem = function(id, currentStock, encodedName) {
     }
 };
 
-// 👇 NUEVA FUNCIÓN: Para descontar stock (Restar lo gastado)
+// Función para descontar stock (Resta lo gastado)
 window.deductStock = function(id, currentStock, encodedName) {
     const itemName = decodeURIComponent(encodedName);
     const qtyToDeduct = prompt(`¿Cuántas unidades de "${itemName}" se han gastado/utilizado? (Stock actual: ${currentStock})`);
     if (qtyToDeduct !== null && !isNaN(qtyToDeduct) && parseFloat(qtyToDeduct) > 0) {
         const deducted = parseFloat(qtyToDeduct);
-        const newStock = Math.max(0, currentStock - deducted); // Evita que baje de 0
+        const newStock = Math.max(0, currentStock - deducted);
         window.updateDoc(window.doc(db, "199x_inventory", id), { stock: newStock })
             .catch(error => console.error("Error al descontar stock:", error));
     }
 };
 
+// Función para hacer Cierre de Mes (El stock actual pasa a ser el nuevo stock inicial)
+window.performMonthlyClose = async function() {
+    if(confirm('¿Deseas realizar el cierre de mes? Esto establecerá el stock actual de todos los insumos como el nuevo "Stock Inicial" para el mes que entra.')) {
+        try {
+            const batchPromises = window.globalInventoryData.map(item => {
+                const currentStock = parseFloat(item.stock) || 0;
+                return window.updateDoc(window.doc(db, "199x_inventory", item.id), {
+                    initialStock: currentStock // El sobrante se vuelve la base del nuevo mes
+                });
+            });
+            await Promise.all(batchPromises);
+            alert('¡Cierre de mes realizado con éxito! Los inventarios han actualizado su base inicial.');
+        } catch (error) {
+            console.error("Error en cierre de mes:", error);
+            alert('Hubo un error al realizar el cierre.');
+        }
+    }
+};
+
 // Función para cargar datos al formulario al presionar Editar
-window.editInventoryItem = function(id, encodedName, stock, price, encodedUnit) {
+window.editInventoryItem = function(id, encodedName, initialStock, stock, price, encodedUnit) {
     document.getElementById('editingInventoryId').value = id;
     document.getElementById('invItemName').value = decodeURIComponent(encodedName);
-    document.getElementById('invItemStock').value = stock;
+    document.getElementById('invItemStock').value = stock; // Edita el actual
     document.getElementById('invItemPrice').value = price;
     document.getElementById('invItemUnit').value = decodeURIComponent(encodedUnit);
     
@@ -514,7 +535,7 @@ window.editInventoryItem = function(id, encodedName, stock, price, encodedUnit) 
     window.scrollTo({top: 0, behavior: 'smooth'});
 };
 
-// Función para guardar o actualizar
+// Función para guardar o actualizar insumo
 window.saveInventoryItem = async function(e) {
     e.preventDefault();
     const id = document.getElementById('editingInventoryId').value;
@@ -523,15 +544,21 @@ window.saveInventoryItem = async function(e) {
     const price = parseFloat(document.getElementById('invItemPrice').value);
     const unit = document.getElementById('invItemUnit').value.trim();
 
-    const itemData = { name, stock, price, unit };
-
     try {
         if (id) {
-            await window.updateDoc(window.doc(db, "199x_inventory", id), itemData);
+            // Actualizar existente (mantiene o actualiza stock)
+            await window.updateDoc(window.doc(db, "199x_inventory", id), { name, stock, price, unit });
             document.getElementById('editingInventoryId').value = '';
             document.getElementById('invSubmitBtn').innerText = "Guardar Insumo";
         } else {
-            await window.addDoc(window.collection(db, "199x_inventory"), itemData);
+            // Crear nuevo insumo (el stock inicial es igual al stock con el que nace)
+            await window.addDoc(window.collection(db, "199x_inventory"), { 
+                name, 
+                initialStock: stock, 
+                stock, 
+                price, 
+                unit 
+            });
         }
         e.target.reset();
     } catch (error) {
@@ -540,13 +567,12 @@ window.saveInventoryItem = async function(e) {
     }
 };
 
-// Función para eliminar
+// Función para eliminar insumo
 window.deleteInventoryItem = async function(id) {
     if(confirm('¿Eliminar insumo?')) {
         await window.deleteDoc(window.doc(window.db, "199x_inventory", id));
     }
 };
-
         // escuchar gastos
             window.onSnapshot(window.collection(db, "199x_accounting"), (snapshot) => {
                 globalExpenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
